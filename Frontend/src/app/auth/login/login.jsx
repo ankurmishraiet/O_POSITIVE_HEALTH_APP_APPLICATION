@@ -55,7 +55,7 @@ export default function Login() {
 
         <Pressable
           className="mt-6 h-12 items-center justify-center rounded-full bg-[#1B4FD8]"
-          onPress={() => router.push('/auth/verify-otp/verify-otp')}
+          onPress={() => router.push('/auth/verify-otp/Verifyotp')}
         >
           <Text className="text-base font-bold text-white">CONTINUE  →</Text>
         </Pressable>
