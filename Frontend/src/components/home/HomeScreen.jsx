@@ -43,6 +43,7 @@ export default function HomeScreen() {
   }
   onOpinionPress={() => router.push("/forms/second-opinion")}
 />
+
       </ScrollView>
     </View>
   );

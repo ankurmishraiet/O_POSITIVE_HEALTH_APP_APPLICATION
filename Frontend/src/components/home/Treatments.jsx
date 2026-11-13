@@ -7,6 +7,7 @@ import {
   FlatList,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 const treatments = [
   {
@@ -45,6 +46,23 @@ const Treatments = ({
   onTreatmentPress,
   onViewAllPress,
 }) => {
+  const router = useRouter();
+
+  const handleTreatmentPress = (item) => {
+    const treatmentName = item.title.replace("\n", " ");
+
+    if (item.id === "1") {
+      router.push({
+        pathname: "/hospital-details",
+        params: {
+          treatment: treatmentName,
+        },
+      });
+    } else {
+      onTreatmentPress?.(treatmentName);
+    }
+  };
+
   return (
     <View className="px-4 mt-5">
 
@@ -74,11 +92,7 @@ const Treatments = ({
         renderItem={({ item }) => (
           <TouchableOpacity
             activeOpacity={0.8}
-            onPress={() =>
-              onTreatmentPress?.(
-                item.title.replace("\n", " ")
-              )
-            }
+            onPress={() => handleTreatmentPress(item)}
             className="w-[31.5%] h-[112px] bg-white rounded-2xl items-center justify-center px-2"
             style={{
               elevation: 3,

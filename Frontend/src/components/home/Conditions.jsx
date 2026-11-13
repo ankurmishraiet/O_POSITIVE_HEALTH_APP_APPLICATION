@@ -2,11 +2,13 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 const conditions = [
   {
     title: "Acute Liver\nFailure",
     icon: "heart-pulse",
+    route: "/hospitals",
   },
   {
     title: "Anal\nFistula",
@@ -39,9 +41,11 @@ const conditions = [
 ];
 
 export default function Conditions() {
+  const router = useRouter();
+
   return (
     <View className="px-4 mt-2 mb-5">
-      
+
       {/* Heading */}
       <View className="flex-row justify-between items-center mb-3">
         <Text className="text-base font-bold text-slate-900">
@@ -61,6 +65,11 @@ export default function Conditions() {
           <TouchableOpacity
             key={index}
             activeOpacity={0.8}
+            onPress={() => {
+              if (item.route) {
+                router.push(item.route);
+              }
+            }}
             className="w-[23.5%] h-[88px] bg-white rounded-xl border border-slate-100 shadow-sm items-center justify-center mb-3 px-1"
           >
             <MaterialCommunityIcons
