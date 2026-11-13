@@ -223,75 +223,7 @@ export default function Home() {
             </Text>
           </View>
         </View>
-      </View>      <View
-        style={{
-          marginTop: 24 * s,
-          marginHorizontal: 17 * s,
-          paddingHorizontal: 18 * s,
-          paddingTop: 20 * s,
-          paddingBottom: 18 * s,
-          borderRadius: 20 * s,
-          backgroundColor: '#DCEAFB',
-        }}
-      >
-        <View className="flex-row">
-          <View className="flex-1" style={{ paddingRight: 6 * s }}>
-            <Text
-              className="font-extrabold text-[#111111]"
-              style={{ fontSize: 22 * s, lineHeight: 27 * s }}
-            >
-              <Text className="text-[#1B7FD0]">HealthGPT:</Text> Your Personal
-              HealthCare Companion
-            </Text>
-            <Text
-              className="text-[#333333]"
-              style={{
-                fontSize: 13 * s,
-                lineHeight: 21 * s,
-                marginTop: 14 * s,
-                width: 200 * s,
-              }}
-            >
-              Ask any health query to your personal assistant offering
-              tailor-made guidance 24x7.
-            </Text>
-          </View>
-          <Image
-            source={require('../../../assets/images/robot.png')}
-            style={{ width: 100 * s, height: 100 * s }}
-            resizeMode="contain"
-          />
-        </View>
-
-        <View
-          className="flex-row items-center border-2 border-[#2B7FD8] bg-white"
-          style={{
-            height: 57 * s,
-            borderRadius: 29 * s,
-            marginTop: 16 * s,
-            paddingLeft: 18 * s,
-            paddingRight: 8 * s,
-          }}
-        >
-          <TextInput
-            className="flex-1 text-[#111111]"
-            style={{ fontSize: 14 * s, outlineStyle: 'none' }}
-            placeholder="Ask me anything..."
-            placeholderTextColor="#777777"
-            value={question}
-            onChangeText={setQuestion}
-          />
-          <View
-            className="items-center justify-center bg-[#1B7FD8]"
-            style={{ width: 42 * s, height: 42 * s, borderRadius: 21 * s }}
-          >
-            <Text className="text-white" style={{ fontSize: 18 * s }}>
-              ➤
-            </Text>
-          </View>
-        </View>
-      </View>
-      
+</View>      
       
            <View
         className="absolute bottom-0 left-0 right-0 flex-row items-center justify-around border-t border-[#EEF0F6] bg-white"
