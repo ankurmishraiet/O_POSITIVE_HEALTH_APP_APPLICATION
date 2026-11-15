@@ -27,6 +27,7 @@ export default function HomeScreen() {
         <HealthProgram />
         <OurServices />
         <Conditions />
+        
        <Treatments
   onTreatmentPress={(name) => {
     console.log("Selected:", name);
@@ -36,9 +37,14 @@ export default function HomeScreen() {
   }}
 />
 
+<HomeCommunity />
+        <HomeMedia />
+        <HomeHospitals />
+
 <CommunityBanner
   onPress={() => router.push("/community")}
 />
+
 <HealthServices
   onInsurancePress={() => router.push("/forms/insurance")}
   onLoanPress={() =>
@@ -46,9 +52,7 @@ export default function HomeScreen() {
   }
   onOpinionPress={() => router.push("/forms/second-opinion")}
 />
-        <HomeCommunity />
-        <HomeMedia />
-        <HomeHospitals />
+        
 
       </ScrollView>
     </View>

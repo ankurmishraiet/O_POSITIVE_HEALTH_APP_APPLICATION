@@ -1,25 +1,43 @@
-import { Image, Text, View } from 'react-native';
+
+import { Image, Text, View, Pressable } from 'react-native';
+import { useRouter } from 'expo-router';
 
 const hospitals = [
-  { id: 1, image: require('../../../assets/images/hospital-apex.png') },
-  { id: 2, image: require('../../../assets/images/hospital-apollo.png') },
-  { id: 3, image: require('../../../assets/images/hospital-narayana.png') },
+  {
+    id: 1,
+    image: require('../../../assets/images/hospital-apex.png'),
+    route: '/hospital-details',
+  },
+  {
+    id: 2,
+    image: require('../../../assets/images/hospital-apollo.png'),
+    route: '/hospital-details',
+  },
+  {
+    id: 3,
+    image: require('../../../assets/images/hospital-narayana.png'),
+    route: '/hospital-details',
+  },
 ];
 
 const doctors = [
   {
     id: 1,
     name: 'Dr. Aman Priya Khanna',
-    speciality: 'General Surgery, Laparoscopic Surgery, Proctology, Bariatric Surgery',
+    speciality:
+      'General Surgery, Laparoscopic Surgery, Proctology, Bariatric Surgery',
     experience: '14+ years',
     image: require('../../../assets/images/doctor-1.png'),
+    route: '/consultant/consultant',
   },
   {
     id: 2,
     name: 'Dr. Ankit Vivek Potdar',
-    speciality: 'Bariatric Surgery, General Surgery, Laparoscopic Surgery',
+    speciality:
+      'Bariatric Surgery, General Surgery, Laparoscopic Surgery',
     experience: '13+ years',
     image: require('../../../assets/images/doctor-2.png'),
+    route: '/consultant/consultant',
   },
   {
     id: 3,
@@ -27,6 +45,7 @@ const doctors = [
     speciality: 'Obstetrics and Gynaecology',
     experience: '19+ years',
     image: require('../../../assets/images/doctor-3.png'),
+    route: '/consultant/consultant',
   },
 ];
 
@@ -38,24 +57,39 @@ const cardShadow = {
   elevation: 5,
 };
 
-function SectionHeader({ title }) {
+function SectionHeader({ title, onViewAll }) {
   return (
     <View className="mb-[10px] mt-[10px] flex-row items-center justify-between px-6">
-      <Text className="text-[23px] font-extrabold text-[#111111]">{title}</Text>
-      <Text className="text-[13px] font-extrabold text-[#1B5FD8]">View All</Text>
+      <Text className="text-[23px] font-extrabold text-[#111111]">
+        {title}
+      </Text>
+
+      <Pressable onPress={onViewAll}>
+        <Text className="text-[13px] font-extrabold text-[#1B5FD8]">
+          View All
+        </Text>
+      </Pressable>
     </View>
   );
 }
 
 export default function HomeHospitals() {
+  const router = useRouter();
+
   return (
     <View className="bg-white pb-6">
-      <SectionHeader title="Our Hospitals" />
+
+      {/* Hospitals Section */}
+      <SectionHeader
+        title="Our Hospitals"
+        onViewAll={() => router.push('/hospitals')}
+      />
 
       <View className="flex-row px-[17px]">
         {hospitals.map((item, index) => (
-          <View
+          <Pressable
             key={item.id}
+            onPress={() => router.push(item.route)}
             className={
               index === hospitals.length - 1
                 ? 'h-[108px] flex-1 items-center justify-center overflow-hidden rounded-2xl bg-white'
@@ -68,15 +102,20 @@ export default function HomeHospitals() {
               style={{ width: '100%', height: '100%' }}
               resizeMode="cover"
             />
-          </View>
+          </Pressable>
         ))}
       </View>
 
-      <SectionHeader title="Our Doctors" />
+      {/* Doctors Section */}
+      <SectionHeader
+        title="Our Doctors"
+        onViewAll={() => router.push('/consultant')}
+      />
 
       {doctors.map((item) => (
-        <View
+        <Pressable
           key={item.id}
+          onPress={() => router.push(item.route)}
           className="mx-4 mb-[10px] flex-row items-center rounded-2xl bg-white px-4 py-[14px]"
           style={cardShadow}
         >
@@ -85,20 +124,26 @@ export default function HomeHospitals() {
             style={{ width: 88, height: 88, borderRadius: 44 }}
             resizeMode="cover"
           />
+
           <View className="ml-[14px] flex-1">
             <Text className="text-[14.5px] font-extrabold text-[#111111]">
               {item.name}
             </Text>
+
             <Text className="mt-1 text-[11px] leading-[15px] text-[#666666]">
               {item.speciality}
             </Text>
+
             <Text className="mt-2 text-[12px] text-[#555555]">
               Experience:{' '}
-              <Text className="font-bold text-[#111111]">{item.experience}</Text>
+              <Text className="font-bold text-[#111111]">
+                {item.experience}
+              </Text>
             </Text>
           </View>
-        </View>
+        </Pressable>
       ))}
+
     </View>
   );
 }
