@@ -1,10 +1,11 @@
 import React from 'react'
+import { View } from 'react-native'
 
 function explore() {
   return (
-    <div>
+    <View>
       explore
-    </div>
+    </View>
   )
 }
 
