@@ -166,7 +166,7 @@ export default function Insurance() {
           <View className="mt-5 px-6">
 
             <Pressable
-              onPress={() => router.replace("/home")}
+              onPress={() => router.push("/auth/login/login")}
               className="h-12 flex-row items-center justify-center rounded-full bg-blue-700 active:bg-blue-800"
             >
 

@@ -125,7 +125,7 @@ export default function VerifyOtp() {
           className={`mt-[72px] h-12 w-4/5 items-center justify-center rounded-full bg-[#1B4FD8] ${
             canVerify ? '' : 'opacity-50'
           }`}
-          onPress={() => router.push('/')}
+          onPress={() =>router.replace('/home')}
         >
           <Text className="text-sm font-bold text-white">VERIFY & LOGIN</Text>
         </Pressable>

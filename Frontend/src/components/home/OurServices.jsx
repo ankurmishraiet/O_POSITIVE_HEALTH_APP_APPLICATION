@@ -2,11 +2,13 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 const services = [
   {
     title: "Doctor\nConsultation",
     icon: "doctor",
+        route: "/consultant/consultant",
   },
   {
     title: "Health\nRecords",
@@ -31,6 +33,8 @@ const services = [
 ];
 
 export default function OurServices() {
+    const router = useRouter();
+
   return (
     <View className="px-4 mt-4">
       <Text className="text-base font-bold text-slate-900 mb-3">
@@ -42,6 +46,11 @@ export default function OurServices() {
           <TouchableOpacity
             key={index}
             activeOpacity={0.8}
+                        onPress={() => {
+              if (service.route) {
+                router.push(service.route);
+              }
+            }}
             className="w-[31.5%] h-[85px] bg-white rounded-xl border border-slate-100 shadow-sm items-center justify-center mb-3"
           >
             <MaterialCommunityIcons

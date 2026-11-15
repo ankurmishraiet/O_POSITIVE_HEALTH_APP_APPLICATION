@@ -8,7 +8,7 @@ const conditions = [
   {
     title: "Acute Liver\nFailure",
     icon: "heart-pulse",
-    route: "/hospitals",
+    route: "/liver/liver",
   },
   {
     title: "Anal\nFistula",

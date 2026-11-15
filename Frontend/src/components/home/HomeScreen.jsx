@@ -12,6 +12,9 @@ import OurServices  from "./OurServices";
 import Conditions from "./Conditions";
 import Treatments from "./Treatments"
 import CommunityBanner from "./CommunityBanner"
+import HomeCommunity from "./HomeCommunity";
+import HomeMedia from "./HomeMedia";
+import HomeHospitals from "./HomeHospitals";
 export default function HomeScreen() {
    const router = useRouter();
   return (
@@ -43,6 +46,9 @@ export default function HomeScreen() {
   }
   onOpinionPress={() => router.push("/forms/second-opinion")}
 />
+        <HomeCommunity />
+        <HomeMedia />
+        <HomeHospitals />
 
       </ScrollView>
     </View>

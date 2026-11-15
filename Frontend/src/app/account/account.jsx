@@ -1,4 +1,6 @@
+
 import { Image, Pressable, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
 
 const rows = [
   { label: 'My Family', icon: require('../../../assets/images/acc-family.png') },
@@ -7,14 +9,15 @@ const rows = [
   { label: 'Help', icon: require('../../../assets/images/acc-help.png') },
   { label: 'Rate Us', icon: require('../../../assets/images/acc-rate.png') },
   { label: 'Refer Family / Friends', icon: require('../../../assets/images/acc-refer.png') },
-  { label: 'FAQs', icon: require('../../../assets/images/acc-faqs.png'), space: true },
-  { label: 'About Us', icon: require('../../../assets/images/acc-about.png') },
-  { label: 'Contact Us', icon: require('../../../assets/images/acc-contact.png') },
+   { label: 'FAQs', icon: require('../../../assets/images/acc-faqs.png'), space: true, route: '/faqs/faqs' },
+  { label: 'About Us', icon: require('../../../assets/images/acc-about.png'), route: '/about/about' },
+  { label: 'Contact Us', icon: require('../../../assets/images/acc-contact.png'), route: '/contact/contact' },
   { label: 'Terms and Conditions', icon: require('../../../assets/images/acc-terms.png') },
   { label: 'Privacy Policy', icon: require('../../../assets/images/acc-privacy.png') },
 ];
 
 export default function Account() {
+  const router = useRouter();
   return (
     <View className="flex-1 bg-white">
       <View className="flex-row items-center justify-between px-6 pb-2 pt-12">
@@ -25,6 +28,7 @@ export default function Account() {
       {rows.map((row) => (
         <Pressable
           key={row.label}
+          onPress={() => { if (row.route) { router.push(row.route); } }}
           className="h-12 flex-row items-center border-b border-[#E6EAEE] px-6"
           style={{ marginTop: row.space ? 12 : 0 }}
         >
@@ -38,34 +42,6 @@ export default function Account() {
         <Text className="text-xs text-gray-500">© O Positive Health, All rights reserved</Text>
       </View>
 
-      <View className="absolute bottom-0 left-0 right-0 h-[72px] flex-row items-center justify-around border-t border-[#EEF0F6] bg-white">
-        <Pressable className="w-[70px] items-center">
-          <Image source={require('../../../assets/images/acc-nav-home.png')} style={{ width: 28, height: 28 }} resizeMode="contain" />
-          <Text className="mt-1 text-[10px] font-bold text-[#222222]">Home</Text>
-        </Pressable>
-
-        <Pressable className="w-[70px] items-center">
-          <Image source={require('../../../assets/images/nav-media.png')} style={{ width: 28, height: 28 }} resizeMode="contain" />
-          <Text className="mt-1 text-[10px] font-bold text-[#222222]">Media</Text>
-        </Pressable>
-
-        <Pressable
-          className="h-[58px] w-[58px] items-center justify-center rounded-full bg-[#1F3FB0]"
-          style={{ marginTop: -30 }}
-        >
-          <Image source={require('../../../assets/images/nav-search.png')} style={{ width: 26, height: 26 }} resizeMode="contain" />
-        </Pressable>
-
-        <Pressable className="w-[70px] items-center">
-          <Image source={require('../../../assets/images/nav-community.png')} style={{ width: 28, height: 28 }} resizeMode="contain" />
-          <Text className="mt-1 text-[10px] font-bold text-[#222222]">Community</Text>
-        </Pressable>
-
-        <Pressable className="w-[70px] items-center">
-          <Image source={require('../../../assets/images/acc-nav-account.png')} style={{ width: 28, height: 28 }} resizeMode="contain" />
-          <Text className="mt-1 text-[10px] font-bold text-[#0E8FB8]">Account</Text>
-        </Pressable>
-      </View>
     </View>
   );
 }
