@@ -126,9 +126,7 @@ export default function Login() {
           <Text className="text-xl font-bold text-white">→</Text>
         </Pressable>
 
-        <Text className="mt-3 text-[11px] text-gray-700">
-          Have a Corporate Account? <Text className="text-[#F28C00] underline">Login here</Text>
-        </Text>
+        
       </View>
     </View>
   );
