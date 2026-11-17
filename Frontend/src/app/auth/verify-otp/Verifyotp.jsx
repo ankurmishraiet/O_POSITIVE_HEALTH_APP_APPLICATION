@@ -38,10 +38,24 @@ export default function VerifyOtp() {
     }
   };
 
-  const handleResend = () => {
-    setOtp(['', '', '', '', '', '']);
-    setSeconds(30);
-    inputs.current[0].focus();
+    const handleResend = async () => {
+    try {
+      const res = await fetch(BASE_URL + '/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.message);
+        return;
+      }
+      setOtp(['', '', '', '', '', '']);
+      setSeconds(30);
+      inputs.current[0].focus();
+    } catch (err) {
+      alert('Server se connect nahi ho paya');
+    }
   };
 
   const canVerify = otp.every((digit) => digit !== '');
