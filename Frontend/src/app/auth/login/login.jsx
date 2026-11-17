@@ -3,6 +3,7 @@ import {
   Image, Pressable, Text, TextInput, View, useWindowDimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { BASE_URL } from '../../../config/api';
 
 export default function Login() {
   const router = useRouter();
@@ -16,6 +17,23 @@ export default function Login() {
   }, [width, height]);
 
   const canContinue = agreed && phone.length === 10;
+    const sendOtp = async () => {
+    try {
+      const res = await fetch(BASE_URL + '/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.message);
+        return;
+      }
+      router.push({ pathname: '/auth/verify-otp/Verifyotp', params: { phone } });
+    } catch (err) {
+      alert('Server se connect nahi ho paya');
+    }
+  };
 
   return (
     <View className="flex-1 bg-white">
@@ -102,9 +120,7 @@ export default function Login() {
           disabled={!canContinue}
           className={`mt-6 h-12 w-full flex-row items-center justify-center rounded-full bg-[#1B4FD8] ${canContinue ? '' : 'opacity-50'
             }`}
-          onPress={() =>
-            router.push({ pathname: '/auth/verify-otp/Verifyotp', params: { phone } })
-          }
+                    onPress={sendOtp}
         >
           <Text className="mr-2 text-sm font-bold tracking-wide text-white">CONTINUE</Text>
           <Text className="text-xl font-bold text-white">→</Text>

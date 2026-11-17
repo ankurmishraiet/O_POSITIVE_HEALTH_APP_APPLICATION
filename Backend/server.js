@@ -3,6 +3,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 require('dotenv').config();
 const adminRoutes = require('./routes/adminRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 
@@ -10,6 +11,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/api/admin', adminRoutes);
+app.use('/api', userRoutes);
 app.get('/', (req, res) => {
   res.send('O Positive Health API chal raha hai');
 });
