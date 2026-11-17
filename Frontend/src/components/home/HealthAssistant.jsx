@@ -20,7 +20,7 @@ export default function HealthAssistant() {
           </Text>
 
           <TouchableOpacity
-            onPress={() => router.push("/home/home")}
+            onPress={() => router.push("/chatbot/chatbot")}
             className="bg-orange-500 rounded-full px-4 py-2 mt-3 self-start"
           >
             <Text className="text-white font-bold text-xs">

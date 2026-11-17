@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Image, Pressable, Text, TextInput, View } from 'react-native';
-
+import { useRouter } from 'expo-router';
 const categories = ['All', 'Cancer', 'Orthopaedics', 'Cardiology'];
 
 const cardShadow = {
@@ -14,6 +14,7 @@ const cardShadow = {
 export default function HomeCommunity() {
   const [selected, setSelected] = useState('All');
   const [question, setQuestion] = useState('');
+    const router = useRouter();
 
   return (
     <View className="bg-white pb-6">
@@ -97,9 +98,17 @@ export default function HomeCommunity() {
             value={question}
             onChangeText={setQuestion}
           />
-          <View className="h-[42px] w-[42px] items-center justify-center rounded-full bg-[#1B7FD8]">
+                    <Pressable
+            onPress={() => {
+              if (question.trim()) {
+                router.push({ pathname: '/chatbot/chatbot', params: { question } });
+                setQuestion('');
+              }
+            }}
+            className="h-[42px] w-[42px] items-center justify-center rounded-full bg-[#1B7FD8]"
+          >
             <Text className="text-[18px] text-white">➤</Text>
-          </View>
+          </Pressable>
         </View>
       </View>
     </View>
