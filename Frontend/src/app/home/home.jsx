@@ -225,39 +225,6 @@ export default function Home() {
         </View>
 </View>      
       
-           <View
-        className="absolute bottom-0 left-0 right-0 flex-row items-center justify-around border-t border-[#EEF0F6] bg-white"
-        style={{ height: 72 * s }}
-      >
-        {tabs.slice(0, 2).map((item) => (
-          <NavItem key={item.label} item={item} s={s} />
-        ))}
-
-        <Pressable
-          className="items-center justify-center bg-[#1F3FB0]"
-          style={{
-            width: 58 * s,
-            height: 58 * s,
-            borderRadius: 29 * s,
-            marginTop: -30 * s,
-            shadowColor: '#1B3FB0',
-            shadowOpacity: 0.4,
-            shadowRadius: 12,
-            shadowOffset: { width: 0, height: 4 },
-            elevation: 8,
-          }}
-        >
-          <Image
-            source={require('../../../assets/images/nav-search.png')}
-            style={{ width: 26 * s, height: 26 * s }}
-            resizeMode="contain"
-          />
-        </Pressable>
-
-        {tabs.slice(2).map((item) => (
-          <NavItem key={item.label} item={item} s={s} />
-        ))}
-      </View>
     </View>
   );
 }

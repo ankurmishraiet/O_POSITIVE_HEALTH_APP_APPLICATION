@@ -109,7 +109,7 @@ export default function HomeHospitals() {
       {/* Doctors Section */}
       <SectionHeader
         title="Our Doctors"
-        onViewAll={() => router.push('/consultant')}
+               onViewAll={() => router.push('/consultant/consultant')}
       />
 
       {doctors.map((item) => (
