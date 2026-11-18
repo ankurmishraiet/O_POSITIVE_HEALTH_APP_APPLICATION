@@ -3,6 +3,10 @@ import AdminLoginPage from "../components/admin/AdminLoginPage";
 import AdminLayout from "../components/admin/AdminLayout";
 import Dashboard from "../pages/Admin/Dashboard";
 import ComingSoon from "../pages/Admin/ComingSoon";
+import Doctors from "../pages/Admin/Doctors";
+import Hospitals from "../pages/Admin/Hospitals";
+import Videos from "../pages/Admin/Videos";
+import Articles from "../pages/Admin/Articles";
 
 export default function AppRoutes() {
   return (
@@ -14,6 +18,10 @@ export default function AppRoutes() {
       <Route path="/admin" element={<AdminLayout />}>
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
+        <Route path="doctors" element={<Doctors />} />
+        <Route path="hospitals" element={<Hospitals />} />
+               <Route path="videos" element={<Videos />} />
+                <Route path="articles" element={<Articles />} />
         <Route path="patients" element={<ComingSoon title="Patients" />} />
         <Route path="appointments" element={<ComingSoon title="Appointments" />} />
         <Route path="reports" element={<ComingSoon title="Reports" />} />

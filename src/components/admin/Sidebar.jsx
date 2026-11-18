@@ -9,6 +9,10 @@ const menu = [
   ["Pharmacy", "/admin/pharmacy"],
   ["Locations", "/admin/locations"],
   ["Notifications", "/admin/notifications"],
+    ["Doctors", "/admin/doctors"],
+  ["Hospitals", "/admin/hospitals"],
+  ["Videos", "/admin/videos"],
+  ["Articles", "/admin/articles"],
 ];
 
 export default function Sidebar() {

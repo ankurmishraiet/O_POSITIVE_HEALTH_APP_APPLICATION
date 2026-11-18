@@ -1,14 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import StatCard from "../../components/admin/StatCard";
 import ChartCard from "../../components/admin/ChartCard";
 import { LineChart, BarChart } from "../../components/admin/Charts";
 import { C, font, cardBase } from "../../theme";
 
-const tasks = {
-  Urgent: ["Review critical lab results for Ward 3", "Restock oxygen cylinders in emergency", "Call back patient in bed 12 about discharge"],
-  Routine: ["Update vaccination records", "Schedule monthly health camp", "Send follow-up reminders"],
-  Admin: ["Approve staff leave requests", "Reconcile pharmacy invoices", "Renew equipment service contract"],
-};
+const API = "http://localhost:5000/api/admin/tasks";
+const tabs = ["Urgent", "Routine", "Admin"];
 
 const staff = [
   ["Dr. Harpreet Singh", "Cardiology", "42 patients"],
@@ -19,7 +16,37 @@ const staff = [
 
 export default function Dashboard() {
   const [tab, setTab] = useState("Urgent");
-  const [done, setDone] = useState({ Urgent0: true });
+  const [tasks, setTasks] = useState([]);
+    const [title, setTitle] = useState("");
+  const token = localStorage.getItem("adminToken");
+  const headers = { Authorization: "Bearer " + token };
+
+  useEffect(() => {
+    fetch(API, { headers })
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) setTasks(data);
+      });
+  }, []);
+
+  const toggleTask = async (id) => {
+    const res = await fetch(API + "/" + id, { method: "PATCH", headers });
+    const updated = await res.json();
+    if (res.ok) setTasks(tasks.map((t) => (t._id === id ? updated : t)));
+  };
+    const addTask = async () => {
+    if (!title.trim()) return;
+    const res = await fetch(API, {
+      method: "POST",
+      headers: { ...headers, "Content-Type": "application/json" },
+      body: JSON.stringify({ title, category: tab }),
+    });
+    const created = await res.json();
+    if (res.ok) {
+      setTasks([...tasks, created]);
+      setTitle("");
+    }
+  };
 
   return (
     <>
@@ -46,22 +73,23 @@ export default function Dashboard() {
         <div style={{ ...cardBase, flex: "1 1 340px", minWidth: 300, overflow: "hidden" }}>
           <div style={{ background: `linear-gradient(135deg, ${C.indigo}, ${C.navy})`, padding: "14px 18px", display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
             <span style={{ color: "#ffffffcc", fontSize: 13 }}>Tasks:</span>
-            {Object.keys(tasks).map((t) => (
+            {tabs.map((t) => (
               <button key={t} onClick={() => setTab(t)} style={{ border: "none", cursor: "pointer", fontFamily: font, fontSize: 13, padding: "6px 14px", borderRadius: 6, background: tab === t ? "#ffffff30" : "transparent", color: "#fff" }}>
                 {t}
               </button>
             ))}
           </div>
           <div style={{ padding: "8px 18px 14px" }}>
-            {tasks[tab].map((t, i) => {
-              const key = tab + i;
-              return (
-                <label key={key} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 0", borderBottom: `1px solid ${C.line}`, cursor: "pointer", fontSize: 14 }}>
-                  <input type="checkbox" checked={!!done[key]} onChange={() => setDone({ ...done, [key]: !done[key] })} style={{ accentColor: C.indigo, width: 16, height: 16 }} />
-                  <span style={{ textDecoration: done[key] ? "line-through" : "none", color: done[key] ? C.muted : C.text }}>{t}</span>
-                </label>
-              );
-            })}
+                        <div style={{ display: "flex", gap: 8, padding: "10px 0" }}>
+              <input value={title} onChange={(e) => setTitle(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addTask()} placeholder={"New " + tab + " task"} style={{ flex: 1, padding: "8px 12px", border: `1px solid ${C.line}`, borderRadius: 6, fontFamily: font, fontSize: 14 }} />
+              <button onClick={addTask} style={{ border: "none", cursor: "pointer", background: C.indigo, color: "#fff", fontFamily: font, fontSize: 14, padding: "8px 16px", borderRadius: 6 }}>Add</button>
+            </div>
+            {tasks.filter((t) => t.category === tab).map((t) => (
+              <label key={t._id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 0", borderBottom: `1px solid ${C.line}`, cursor: "pointer", fontSize: 14 }}>
+                <input type="checkbox" checked={t.done} onChange={() => toggleTask(t._id)} style={{ accentColor: C.indigo, width: 16, height: 16 }} />
+                <span style={{ textDecoration: t.done ? "line-through" : "none", color: t.done ? C.muted : C.text }}>{t.title}</span>
+              </label>
+            ))}
           </div>
         </div>
 

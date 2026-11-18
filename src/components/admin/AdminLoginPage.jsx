@@ -113,15 +113,25 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    // TODO: replace with your real auth API call.
-    // Only save the token and navigate if the API says login succeeded.
-    localStorage.setItem("adminToken", "demo-token");
-
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    const res = await fetch("http://localhost:5000/api/admin/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      alert(data.message);
+      return;
+    }
+    localStorage.setItem("adminToken", data.token);
     navigate("/admin/dashboard");
-  };
+  } catch (err) {
+    alert("Server se connect nahi ho paya");
+  }
+};
 
   return (
     <div className="op-page">
