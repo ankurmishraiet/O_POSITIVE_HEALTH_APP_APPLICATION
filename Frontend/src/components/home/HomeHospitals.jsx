@@ -1,53 +1,7 @@
-
+import { useEffect, useState } from 'react';
 import { Image, Text, View, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
-
-const hospitals = [
-  {
-    id: 1,
-    image: require('../../../assets/images/hospital-apex.png'),
-    route: '/hospital-details',
-  },
-  {
-    id: 2,
-    image: require('../../../assets/images/hospital-apollo.png'),
-    route: '/hospital-details',
-  },
-  {
-    id: 3,
-    image: require('../../../assets/images/hospital-narayana.png'),
-    route: '/hospital-details',
-  },
-];
-
-const doctors = [
-  {
-    id: 1,
-    name: 'Dr. Aman Priya Khanna',
-    speciality:
-      'General Surgery, Laparoscopic Surgery, Proctology, Bariatric Surgery',
-    experience: '14+ years',
-    image: require('../../../assets/images/doctor-1.png'),
-    route: '/consultant/consultant',
-  },
-  {
-    id: 2,
-    name: 'Dr. Ankit Vivek Potdar',
-    speciality:
-      'Bariatric Surgery, General Surgery, Laparoscopic Surgery',
-    experience: '13+ years',
-    image: require('../../../assets/images/doctor-2.png'),
-    route: '/consultant/consultant',
-  },
-  {
-    id: 3,
-    name: 'Dr. Darshna Amol Wahane',
-    speciality: 'Obstetrics and Gynaecology',
-    experience: '19+ years',
-    image: require('../../../assets/images/doctor-3.png'),
-    route: '/consultant/consultant',
-  },
-];
+import { BASE_URL, showImage } from '../../config/api';
 
 const cardShadow = {
   shadowColor: '#2846A0',
@@ -75,6 +29,25 @@ function SectionHeader({ title, onViewAll }) {
 
 export default function HomeHospitals() {
   const router = useRouter();
+  const [hospitals, setHospitals] = useState([]);
+  const [doctors, setDoctors] = useState([]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const hospitalRes = await fetch(BASE_URL + '/hospitals');
+        const hospitalData = await hospitalRes.json();
+        if (Array.isArray(hospitalData)) setHospitals(hospitalData.slice(0, 3));
+
+        const doctorRes = await fetch(BASE_URL + '/doctors');
+        const doctorData = await doctorRes.json();
+        if (Array.isArray(doctorData)) setDoctors(doctorData.slice(0, 3));
+      } catch (err) {
+        console.log('Data load nahi hua');
+      }
+    };
+    loadData();
+  }, []);
 
   return (
     <View className="bg-white pb-6">
@@ -88,8 +61,8 @@ export default function HomeHospitals() {
       <View className="flex-row px-[17px]">
         {hospitals.map((item, index) => (
           <Pressable
-            key={item.id}
-            onPress={() => router.push(item.route)}
+            key={item._id}
+            onPress={() => router.push('/hospital-details')}
             className={
               index === hospitals.length - 1
                 ? 'h-[108px] flex-1 items-center justify-center overflow-hidden rounded-2xl bg-white'
@@ -97,11 +70,17 @@ export default function HomeHospitals() {
             }
             style={cardShadow}
           >
-            <Image
-              source={item.image}
-              style={{ width: '100%', height: '100%' }}
-              resizeMode="cover"
-            />
+            {item.image ? (
+              <Image
+                source={{ uri: showImage(item.image) }}
+                style={{ width: '100%', height: '100%' }}
+                resizeMode="cover"
+              />
+            ) : (
+              <Text className="px-2 text-center text-[13px] font-bold text-[#0F2A6B]">
+                {item.name}
+              </Text>
+            )}
           </Pressable>
         ))}
       </View>
@@ -109,18 +88,22 @@ export default function HomeHospitals() {
       {/* Doctors Section */}
       <SectionHeader
         title="Our Doctors"
-               onViewAll={() => router.push('/consultant/consultant')}
+       onViewAll={() => router.push('/consultant/doctors')}
       />
 
       {doctors.map((item) => (
         <Pressable
-          key={item.id}
-          onPress={() => router.push(item.route)}
+          key={item._id}
+          onPress={() => router.push('/consultant/consultant')}
           className="mx-4 mb-[10px] flex-row items-center rounded-2xl bg-white px-4 py-[14px]"
           style={cardShadow}
         >
           <Image
-            source={item.image}
+            source={
+              item.photo
+                ? { uri: showImage(item.photo) }
+                : require('../../../assets/images/doctor-1.png')
+            }
             style={{ width: 88, height: 88, borderRadius: 44 }}
             resizeMode="cover"
           />
@@ -131,15 +114,17 @@ export default function HomeHospitals() {
             </Text>
 
             <Text className="mt-1 text-[11px] leading-[15px] text-[#666666]">
-              {item.speciality}
+              {item.specialty}
             </Text>
 
-            <Text className="mt-2 text-[12px] text-[#555555]">
-              Experience:{' '}
-              <Text className="font-bold text-[#111111]">
-                {item.experience}
+            {item.experience ? (
+              <Text className="mt-2 text-[12px] text-[#555555]">
+                Experience:{' '}
+                <Text className="font-bold text-[#111111]">
+                  {item.experience} years
+                </Text>
               </Text>
-            </Text>
+            ) : null}
           </View>
         </Pressable>
       ))}

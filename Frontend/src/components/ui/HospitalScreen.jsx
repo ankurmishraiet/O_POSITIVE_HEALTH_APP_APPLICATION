@@ -1,8 +1,8 @@
-
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
+  Image,
   ScrollView,
   TouchableOpacity,
   SafeAreaView,
@@ -10,43 +10,13 @@ import {
   Linking,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { BASE_URL, showImage } from "../../config/api";
 
 const COLORS = {
   navy: "#123D83",
   blue: "#087BC1",
   green: "#A5C83C",
 };
-
-const hospitals = [
-  {
-    id: "1",
-    name: "CDAS Super Speciality Hospital",
-    rating: "4.55/5",
-    reviews: "78 Ratings",
-    address: "Malibu Town, Sector 47, Gurgaon",
-    logo: "CDAS",
-    color: "#087BC1",
-  },
-  {
-    id: "2",
-    name: "Lifeaid Medical Centre Sector 40",
-    rating: "4.62/5",
-    reviews: "81 Ratings",
-    address:
-      "Cyber Park, 1097 Shaheed Major Vikas Yadav Marg, near Unitech, Sector 40, Gurgaon",
-    logo: "LIFEAID",
-    color: "#A5C83C",
-  },
-  {
-    id: "3",
-    name: "BenSups Hospital, Delhi",
-    rating: "4.5/5",
-    reviews: "65 Ratings",
-    address: "Delhi, India",
-    logo: "BENSUPS",
-    color: "#087BC1",
-  },
-];
 
 export default function HospitalsScreen({
   onBack,
@@ -55,6 +25,21 @@ export default function HospitalsScreen({
   onBookAppointment,
   onSearch,
 }) {
+  const [hospitals, setHospitals] = useState([]);
+
+  useEffect(() => {
+    const loadHospitals = async () => {
+      try {
+        const res = await fetch(BASE_URL + "/hospitals");
+        const data = await res.json();
+        if (Array.isArray(data)) setHospitals(data);
+      } catch (err) {
+        console.log("Hospitals load nahi hue");
+      }
+    };
+    loadHospitals();
+  }, []);
+
   const openWhatsApp = () =>
     Linking.openURL("https://wa.me/918448534103");
 
@@ -140,36 +125,45 @@ export default function HospitalsScreen({
 
         {hospitals.map((hospital) => (
           <View
-            key={hospital.id}
+            key={hospital._id}
             className="mx-3 mt-3 rounded-xl bg-white p-3 border border-gray-100"
           >
             {/* HOSPITAL DETAILS */}
             <View className="flex-row items-start gap-2.5">
-              
+
               {/* LOGO */}
-              <View className="h-[58px] w-[66px] items-center justify-center rounded-lg border border-gray-200">
-                <View
-                  className="h-5 w-5 items-center justify-center rounded-full border"
-                  style={{ borderColor: hospital.color }}
-                >
-                  <Ionicons
-                    name="medical"
-                    size={12}
-                    color={hospital.color}
-                  />
+              {hospital.image ? (
+                <Image
+                  source={{ uri: showImage(hospital.image) }}
+                  style={{ width: 66, height: 58, borderRadius: 8 }}
+                  resizeMode="cover"
+                />
+              ) : (
+                <View className="h-[58px] w-[66px] items-center justify-center rounded-lg border border-gray-200">
+                  <View
+                    className="h-5 w-5 items-center justify-center rounded-full border"
+                    style={{ borderColor: COLORS.blue }}
+                  >
+                    <Ionicons
+                      name="medical"
+                      size={12}
+                      color={COLORS.blue}
+                    />
+                  </View>
+
+                  <Text
+                    className="mt-1 text-[8px] font-extrabold"
+                    style={{ color: COLORS.blue }}
+                    numberOfLines={1}
+                  >
+                    {hospital.name.split(" ")[0].toUpperCase()}
+                  </Text>
+
+                  <Text className="text-[5px] text-gray-400">
+                    Medical Centre
+                  </Text>
                 </View>
-
-                <Text
-                  className="mt-1 text-[8px] font-extrabold"
-                  style={{ color: hospital.color }}
-                >
-                  {hospital.logo}
-                </Text>
-
-                <Text className="text-[5px] text-gray-400">
-                  Medical Centre
-                </Text>
-              </View>
+              )}
 
               {/* INFORMATION */}
               <View className="flex-1">
@@ -178,30 +172,36 @@ export default function HospitalsScreen({
                 </Text>
 
                 {/* RATING */}
-                <View className="mt-1.5 flex-row items-center">
-                  <Ionicons name="star" size={13} color="#FF873C" />
+                {hospital.rating ? (
+                  <View className="mt-1.5 flex-row items-center">
+                    <Ionicons name="star" size={13} color="#FF873C" />
 
-                  <Text className="ml-1 text-[10px] font-bold text-[#F27B30]">
-                    {hospital.rating}
-                  </Text>
+                    <Text className="ml-1 text-[10px] font-bold text-[#F27B30]">
+                      {hospital.rating}
+                    </Text>
 
-                  <Text className="ml-1 text-[9px] text-gray-500">
-                    ({hospital.reviews})
-                  </Text>
-                </View>
+                    {hospital.reviews ? (
+                      <Text className="ml-1 text-[9px] text-gray-500">
+                        ({hospital.reviews})
+                      </Text>
+                    ) : null}
+                  </View>
+                ) : null}
 
                 {/* ADDRESS */}
-                <View className="mt-1 flex-row items-start">
-                  <Ionicons
-                    name="location-outline"
-                    size={15}
-                    color="#91A3B5"
-                  />
+                {hospital.address || hospital.city ? (
+                  <View className="mt-1 flex-row items-start">
+                    <Ionicons
+                      name="location-outline"
+                      size={15}
+                      color="#91A3B5"
+                    />
 
-                  <Text className="ml-1 flex-1 text-[9px] leading-[13px] text-gray-500">
-                    {hospital.address}
-                  </Text>
-                </View>
+                    <Text className="ml-1 flex-1 text-[9px] leading-[13px] text-gray-500">
+                      {hospital.address || hospital.city}
+                    </Text>
+                  </View>
+                ) : null}
               </View>
             </View>
 
@@ -223,6 +223,12 @@ export default function HospitalsScreen({
             </TouchableOpacity>
           </View>
         ))}
+
+        {hospitals.length === 0 && (
+          <Text className="mt-10 text-center text-[12px] text-gray-500">
+            Abhi koi hospital nahi hai
+          </Text>
+        )}
       </ScrollView>
 
       {/* BOTTOM FIXED BUTTONS */}
