@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { C, font, cardBase } from "../../theme";
+import uploadImage, { showImage } from "../../uploadImage";
 
 const API = "http://localhost:5000/api/admin/articles";
 
@@ -26,6 +27,7 @@ export default function Articles() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [editId, setEditId] = useState(null);
+  const [uploading, setUploading] = useState(false);
   const token = localStorage.getItem("adminToken");
   const headers = {
     Authorization: "Bearer " + token,
@@ -61,6 +63,15 @@ export default function Articles() {
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const chooseImage = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    const url = await uploadImage(file);
+    setUploading(false);
+    if (url) setForm({ ...form, image: url });
   };
 
   const saveArticle = async (e) => {
@@ -116,7 +127,7 @@ export default function Articles() {
                 <td style={{ padding: "12px 18px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     {a.image ? (
-                      <img src={a.image} alt="" style={{ width: 64, height: 38, borderRadius: 6, objectFit: "cover" }} />
+                      <img src={showImage(a.image)} alt="" style={{ width: 64, height: 38, borderRadius: 6, objectFit: "cover" }} />
                     ) : (
                       <div style={{ width: 64, height: 38, borderRadius: 6, background: `${C.indigo}1A`, color: C.indigo, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 600 }}>
                         {a.title.charAt(0)}
@@ -156,8 +167,14 @@ export default function Articles() {
                 <input name="author" value={form.author} onChange={handleChange} style={inputStyle} />
               </div>
               <div>
-                <label style={{ display: "block", fontSize: 12, fontWeight: 600, marginBottom: 6 }}>Image URL</label>
-                <input name="image" value={form.image} onChange={handleChange} placeholder="https://..." style={inputStyle} />
+                <label style={{ display: "block", fontSize: 12, fontWeight: 600, marginBottom: 6 }}>Image</label>
+                <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                  {form.image && (
+                    <img src={showImage(form.image)} alt="" style={{ width: 80, height: 48, borderRadius: 6, objectFit: "cover" }} />
+                  )}
+                  <input type="file" accept="image/*" onChange={chooseImage} />
+                  {uploading && <span style={{ fontSize: 13, color: C.muted }}>Uploading...</span>}
+                </div>
               </div>
               <div>
                 <label style={{ display: "block", fontSize: 12, fontWeight: 600, marginBottom: 6 }}>Content</label>

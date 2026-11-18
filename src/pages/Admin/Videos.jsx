@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { C, font, cardBase } from "../../theme";
+import uploadImage, { showImage } from "../../uploadImage";
 
 const API = "http://localhost:5000/api/admin/videos";
 
@@ -26,6 +27,7 @@ export default function Videos() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [editId, setEditId] = useState(null);
+  const [uploading, setUploading] = useState(false);
   const token = localStorage.getItem("adminToken");
   const headers = {
     Authorization: "Bearer " + token,
@@ -61,6 +63,15 @@ export default function Videos() {
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const chooseImage = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    const url = await uploadImage(file);
+    setUploading(false);
+    if (url) setForm({ ...form, thumbnail: url });
   };
 
   const saveVideo = async (e) => {
@@ -116,7 +127,7 @@ export default function Videos() {
                 <td style={{ padding: "12px 18px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     {v.thumbnail ? (
-                      <img src={v.thumbnail} alt="" style={{ width: 64, height: 38, borderRadius: 6, objectFit: "cover" }} />
+                      <img src={showImage(v.thumbnail)} alt="" style={{ width: 64, height: 38, borderRadius: 6, objectFit: "cover" }} />
                     ) : (
                       <div style={{ width: 64, height: 38, borderRadius: 6, background: `${C.indigo}1A`, color: C.indigo, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 600 }}>
                         ▶
@@ -164,8 +175,14 @@ export default function Videos() {
                 <input name="youtubeUrl" value={form.youtubeUrl} onChange={handleChange} required placeholder="https://www.youtube.com/watch?v=..." style={inputStyle} />
               </div>
               <div>
-                <label style={{ display: "block", fontSize: 12, fontWeight: 600, marginBottom: 6 }}>Thumbnail URL</label>
-                <input name="thumbnail" value={form.thumbnail} onChange={handleChange} placeholder="https://..." style={inputStyle} />
+                <label style={{ display: "block", fontSize: 12, fontWeight: 600, marginBottom: 6 }}>Thumbnail</label>
+                <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                  {form.thumbnail && (
+                    <img src={showImage(form.thumbnail)} alt="" style={{ width: 80, height: 48, borderRadius: 6, objectFit: "cover" }} />
+                  )}
+                  <input type="file" accept="image/*" onChange={chooseImage} />
+                  {uploading && <span style={{ fontSize: 13, color: C.muted }}>Uploading...</span>}
+                </div>
               </div>
             </div>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, marginTop: 20 }}>
