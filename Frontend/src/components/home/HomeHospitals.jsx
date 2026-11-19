@@ -62,7 +62,9 @@ export default function HomeHospitals() {
         {hospitals.map((item, index) => (
           <Pressable
             key={item._id}
-            onPress={() => router.push('/hospital-details')}
+            onPress={() =>
+              router.push({ pathname: '/hospital-details', params: { id: item._id } })
+            }
             className={
               index === hospitals.length - 1
                 ? 'h-[108px] flex-1 items-center justify-center overflow-hidden rounded-2xl bg-white'
@@ -94,7 +96,9 @@ export default function HomeHospitals() {
       {doctors.map((item) => (
         <Pressable
           key={item._id}
-          onPress={() => router.push('/consultant/consultant')}
+          onPress={() =>
+            router.push({ pathname: '/doctor-details', params: { id: item._id } })
+          }
           className="mx-4 mb-[10px] flex-row items-center rounded-2xl bg-white px-4 py-[14px]"
           style={cardShadow}
         >

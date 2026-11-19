@@ -51,7 +51,9 @@ export default function AllDoctors() {
         {doctors.map((item) => (
           <Pressable
             key={item._id}
-            onPress={() => router.push('/consultant/consultant')}
+            onPress={() =>
+              router.push({ pathname: '/doctor-details', params: { id: item._id } })
+            }
             className="mx-4 mb-[10px] flex-row items-center rounded-2xl bg-white px-4 py-[14px]"
             style={cardShadow}
           >

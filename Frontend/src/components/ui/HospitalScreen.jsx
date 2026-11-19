@@ -7,9 +7,9 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
-  Linking,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { BASE_URL, showImage } from "../../config/api";
 
 const COLORS = {
@@ -18,13 +18,8 @@ const COLORS = {
   green: "#A5C83C",
 };
 
-export default function HospitalsScreen({
-  onBack,
-  onOverview,
-  onDoctors,
-  onBookAppointment,
-  onSearch,
-}) {
+export default function HospitalsScreen() {
+  const router = useRouter();
   const [hospitals, setHospitals] = useState([]);
 
   useEffect(() => {
@@ -40,26 +35,20 @@ export default function HospitalsScreen({
     loadHospitals();
   }, []);
 
-  const openWhatsApp = () =>
-    Linking.openURL("https://wa.me/918448534103");
+  const openHospital = (hospital) => {
+    router.push({ pathname: "/hospital-details", params: { id: hospital._id } });
+  };
 
-  const openPhone = () =>
-    Linking.openURL("tel:8448534103");
-
-  const handleBooking = (hospital) => {
-    onBookAppointment?.(hospital);
+  const handleBooking = () => {
+    alert("Appointment booking jaldi shuru hogi");
   };
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <StatusBar
-        backgroundColor="#FFFFFF"
-        barStyle="dark-content"
-      />
+      <StatusBar backgroundColor="#FFFFFF" barStyle="dark-content" />
 
-      {/* HEADER */}
       <View className="h-[52px] flex-row items-center px-3 border-b border-gray-100">
-        <TouchableOpacity onPress={onBack} className="mr-3">
+        <TouchableOpacity onPress={() => router.back()} className="mr-3">
           <Ionicons name="arrow-back" size={23} color={COLORS.navy} />
         </TouchableOpacity>
 
@@ -68,35 +57,13 @@ export default function HospitalsScreen({
           style={{ color: COLORS.navy }}
           numberOfLines={1}
         >
-          Acute Liver Failure
+          Hospitals
         </Text>
-
-        <View className="flex-row items-center gap-4">
-          <TouchableOpacity onPress={openPhone}>
-            <Ionicons name="call" size={21} color={COLORS.blue} />
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={openWhatsApp}>
-            <Ionicons name="logo-whatsapp" size={22} color="#08B66A" />
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={onSearch}>
-            <Ionicons name="search" size={21} color={COLORS.navy} />
-          </TouchableOpacity>
-        </View>
       </View>
 
-      {/* TABS */}
       <View className="h-12 flex-row border-b border-gray-100">
         <TouchableOpacity
-          onPress={onOverview}
-          className="flex-1 items-center justify-center"
-        >
-          <Text className="text-[11px] text-gray-500">Overview</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={onDoctors}
+          onPress={() => router.push("/consultant/doctors")}
           className="flex-1 items-center justify-center"
         >
           <Text className="text-[11px] text-gray-500">Doctors</Text>
@@ -109,7 +76,6 @@ export default function HospitalsScreen({
         </View>
       </View>
 
-      {/* HOSPITAL LIST */}
       <ScrollView
         className="flex-1 bg-[#F7F9FC]"
         showsVerticalScrollIndicator={false}
@@ -124,14 +90,13 @@ export default function HospitalsScreen({
         </View>
 
         {hospitals.map((hospital) => (
-          <View
+          <TouchableOpacity
             key={hospital._id}
+            activeOpacity={0.85}
+            onPress={() => openHospital(hospital)}
             className="mx-3 mt-3 rounded-xl bg-white p-3 border border-gray-100"
           >
-            {/* HOSPITAL DETAILS */}
             <View className="flex-row items-start gap-2.5">
-
-              {/* LOGO */}
               {hospital.image ? (
                 <Image
                   source={{ uri: showImage(hospital.image) }}
@@ -144,11 +109,7 @@ export default function HospitalsScreen({
                     className="h-5 w-5 items-center justify-center rounded-full border"
                     style={{ borderColor: COLORS.blue }}
                   >
-                    <Ionicons
-                      name="medical"
-                      size={12}
-                      color={COLORS.blue}
-                    />
+                    <Ionicons name="medical" size={12} color={COLORS.blue} />
                   </View>
 
                   <Text
@@ -165,13 +126,11 @@ export default function HospitalsScreen({
                 </View>
               )}
 
-              {/* INFORMATION */}
               <View className="flex-1">
                 <Text className="text-[11px] font-bold leading-4 text-[#172033]">
                   {hospital.name}
                 </Text>
 
-                {/* RATING */}
                 {hospital.rating ? (
                   <View className="mt-1.5 flex-row items-center">
                     <Ionicons name="star" size={13} color="#FF873C" />
@@ -188,7 +147,6 @@ export default function HospitalsScreen({
                   </View>
                 ) : null}
 
-                {/* ADDRESS */}
                 {hospital.address || hospital.city ? (
                   <View className="mt-1 flex-row items-start">
                     <Ionicons
@@ -205,66 +163,26 @@ export default function HospitalsScreen({
               </View>
             </View>
 
-            {/* BOOK APPOINTMENT */}
             <TouchableOpacity
               activeOpacity={0.8}
-              onPress={() => handleBooking(hospital)}
+              onPress={handleBooking}
               className="mt-3 h-[32px] flex-row items-center justify-center gap-2 rounded-full border border-[#087BC1]"
             >
-              <Ionicons
-                name="calendar-outline"
-                size={14}
-                color={COLORS.blue}
-              />
+              <Ionicons name="calendar-outline" size={14} color={COLORS.blue} />
 
               <Text className="text-[10px] font-bold text-[#087BC1]">
                 Book Appointment
               </Text>
             </TouchableOpacity>
-          </View>
+          </TouchableOpacity>
         ))}
 
         {hospitals.length === 0 && (
           <Text className="mt-10 text-center text-[12px] text-gray-500">
             Abhi koi hospital nahi hai
-          </Text>
+          </Text>                                                                                     
         )}
       </ScrollView>
-
-      {/* BOTTOM FIXED BUTTONS */}
-      <View className="flex-row items-center gap-2.5 border-t border-gray-100 bg-white px-3 py-2">
-        <TouchableOpacity
-          onPress={openWhatsApp}
-          activeOpacity={0.8}
-          className="h-[40px] flex-[0.85] flex-row items-center justify-center gap-1.5 rounded-full border border-[#16A66A]"
-        >
-          <Ionicons
-            name="logo-whatsapp"
-            size={17}
-            color="#08A95F"
-          />
-
-          <Text className="text-[11px] font-bold text-[#08A95F]">
-            WhatsApp
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => handleBooking(hospitals[0])}
-          activeOpacity={0.85}
-          className="h-[40px] flex-[1.5] flex-row items-center justify-center gap-2 rounded-full bg-[#087BC1]"
-        >
-          <Ionicons
-            name="calendar-outline"
-            size={16}
-            color="white"
-          />
-
-          <Text className="text-[11px] font-bold text-white">
-            Book Appointment
-          </Text>
-        </TouchableOpacity>
-      </View>
     </SafeAreaView>
   );
 }
