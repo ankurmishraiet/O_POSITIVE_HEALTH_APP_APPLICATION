@@ -14,17 +14,17 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../../config/api';
 
 const rows = [
-  { label: 'My Family', icon: require('../../../assets/images/acc-family.png') },
-  { label: 'My Health Records', icon: require('../../../assets/images/acc-records.png') },
-  { label: 'My Appointments', icon: require('../../../assets/images/acc-appointments.png') },
-  { label: 'Help', icon: require('../../../assets/images/acc-help.png') },
-  { label: 'Rate Us', icon: require('../../../assets/images/acc-rate.png') },
-  { label: 'Refer Family / Friends', icon: require('../../../assets/images/acc-refer.png') },
+  { label: 'My Family', icon: require('../../../assets/images/acc-family.png'), route: '/family/family' },
+  { label: 'My Health Records', icon: require('../../../assets/images/acc-records.png'), route: '/records/records' },
+  { label: 'My Appointments', icon: require('../../../assets/images/acc-appointments.png'), route: '/appointments/appointments' },
+  { label: 'Help', icon: require('../../../assets/images/acc-help.png'), route: '/help/help' },
+  { label: 'Rate Us', icon: require('../../../assets/images/acc-rate.png'), route: '/rate/rate' },
+  { label: 'Refer Family / Friends', icon: require('../../../assets/images/acc-refer.png'), route: '/refer/refer' },
    { label: 'FAQs', icon: require('../../../assets/images/acc-faqs.png'), space: true, route: '/faqs/faqs' },
   { label: 'About Us', icon: require('../../../assets/images/acc-about.png'), route: '/about/about' },
   { label: 'Contact Us', icon: require('../../../assets/images/acc-contact.png'), route: '/contact/contact' },
-  { label: 'Terms and Conditions', icon: require('../../../assets/images/acc-terms.png') },
-  { label: 'Privacy Policy', icon: require('../../../assets/images/acc-privacy.png') },
+  { label: 'Terms and Conditions', icon: require('../../../assets/images/acc-terms.png'), route: '/terms/terms' },
+  { label: 'Privacy Policy', icon: require('../../../assets/images/acc-privacy.png'), route: '/privacy/privacy' },
 ];
 
 export default function Account() {
