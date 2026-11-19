@@ -7,7 +7,7 @@ import Doctors from "../pages/Admin/Doctors";
 import Hospitals from "../pages/Admin/Hospitals";
 import Videos from "../pages/Admin/Videos";
 import Articles from "../pages/Admin/Articles";
-
+import Feedback from "../pages/Admin/Feedback";
 export default function AppRoutes() {
   return (
     <Routes>
@@ -20,8 +20,9 @@ export default function AppRoutes() {
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="doctors" element={<Doctors />} />
         <Route path="hospitals" element={<Hospitals />} />
-               <Route path="videos" element={<Videos />} />
-                <Route path="articles" element={<Articles />} />
+        <Route path="videos" element={<Videos />} />
+        <Route path="articles" element={<Articles />} />
+        <Route path="feedback" element={<Feedback />} />
         <Route path="patients" element={<ComingSoon title="Patients" />} />
         <Route path="appointments" element={<ComingSoon title="Appointments" />} />
         <Route path="reports" element={<ComingSoon title="Reports" />} />

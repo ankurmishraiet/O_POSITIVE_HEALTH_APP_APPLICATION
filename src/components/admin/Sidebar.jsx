@@ -13,6 +13,7 @@ const menu = [
   ["Hospitals", "/admin/hospitals"],
   ["Videos", "/admin/videos"],
   ["Articles", "/admin/articles"],
+    ["Feedback", "/admin/feedback"],
 ];
 
 export default function Sidebar() {
