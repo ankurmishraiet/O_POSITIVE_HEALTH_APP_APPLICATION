@@ -8,7 +8,7 @@ const Hospital = require('../models/hospitalModel');
 const Video = require('../models/videoModel');
 const Article = require('../models/articleModel');
 const upload = require('../middleware/upload');
-
+const { getFeedbacks } = require('../controllers/admin/feedbackAdminController');
 const router = express.Router();
 
 router.post('/login', adminLogin);
@@ -32,6 +32,7 @@ resources.forEach(([path, Model, label]) => {
   router.put('/' + path + '/:id', protect, c.update);
   router.delete('/' + path + '/:id', protect, c.remove);
 });
+router.get('/feedbacks', protect, getFeedbacks);
 router.post('/upload', protect, (req, res) => {
   upload.single('image')(req, res, (err) => {
     if (err) {
