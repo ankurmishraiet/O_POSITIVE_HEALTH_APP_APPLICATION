@@ -45,7 +45,12 @@ export default function AllVideos() {
         {videos.map((item) => (
           <Pressable
             key={item._id}
-            onPress={() => Linking.openURL(item.youtubeUrl)}
+            onPress={() =>
+  router.push({
+    pathname: '/video-player',
+    params: { url: item.youtubeUrl, title: item.title },
+  })
+}
             className="mx-[17px] mb-3 rounded-2xl bg-white pb-3"
             style={cardShadow}
           >

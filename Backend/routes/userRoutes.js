@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { sendOtp, verifyOtp } = require('../controllers/user/userAuthController');
+const { getProfile, updateProfile } = require('../controllers/user/userProfileController');
+const { userProtect } = require('../middleware/userProtect');
 const { chat } = require('../controllers/user/chatController');
 const makeController = require('../controllers/admin/crudController');
 const Doctor = require('../models/doctorModel');
@@ -12,6 +14,9 @@ const nodePath = require('path');
 router.post('/auth/send-otp', sendOtp);
 router.post('/auth/verify-otp', verifyOtp);
 router.post('/chat', chat);
+
+router.get('/profile', userProtect, getProfile);
+router.put('/profile', userProtect, updateProfile);
 
 const resources = [
   ['doctors', Doctor, 'Doctor'],

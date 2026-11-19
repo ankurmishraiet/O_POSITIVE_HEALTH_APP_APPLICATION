@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useRouter } from "expo-router";
 import { ScrollView, View } from "react-native";
@@ -15,6 +14,7 @@ import CommunityBanner from "./CommunityBanner"
 import HomeCommunity from "./HomeCommunity";
 import HomeMedia from "./HomeMedia";
 import HomeHospitals from "./HomeHospitals";
+import ChatbotButton from "./ChatbotButton";
 export default function HomeScreen() {
    const router = useRouter();
   return (
@@ -55,6 +55,8 @@ export default function HomeScreen() {
         
 
       </ScrollView>
+
+      <ChatbotButton />
     </View>
   );
 }

@@ -95,7 +95,12 @@ export default function Media() {
         {videos.map((item) => (
           <Pressable
             key={item._id}
-            onPress={() => Linking.openURL(item.youtubeUrl)}
+            onPress={() =>
+  router.push({
+    pathname: '/video-player',
+    params: { url: item.youtubeUrl, title: item.title },
+  })
+}
             style={{ ...cardStyle, paddingBottom: 12 * s }}
           >
             {item.thumbnail ? (

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Image, Pressable, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../../../config/api';
 
 export default function VerifyOtp() {
@@ -72,6 +73,8 @@ export default function VerifyOtp() {
         alert(data.message);
         return;
       }
+      await AsyncStorage.setItem('token', data.token);
+      await AsyncStorage.setItem('user', JSON.stringify(data.user));
       router.replace('/home');
     } catch (err) {
       alert('Server se connect nahi ho paya');
