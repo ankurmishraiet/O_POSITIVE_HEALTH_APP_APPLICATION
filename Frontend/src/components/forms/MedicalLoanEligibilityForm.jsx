@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import {
   View,
@@ -12,8 +11,12 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+
+// Adjust this path to where you saved medicalLoanService.js
+import { submitMedicalLoanApplication } from "../../service/medicalLoan";
 
 const COLORS = {
   navy: "#123D83",
@@ -62,12 +65,12 @@ const Dropdown = ({
 
   return (
     <View className="mb-5">
-      <Text className="text-[14px] font-bold mb-2"
-        style={{ color: COLORS.text }}>
+      <Text
+        className="text-[14px] font-bold mb-2"
+        style={{ color: COLORS.text }}
+      >
         {label}
-        {required && (
-          <Text style={{ color: COLORS.orange }}> *</Text>
-        )}
+        {required && <Text style={{ color: COLORS.orange }}> *</Text>}
       </Text>
 
       <TouchableOpacity
@@ -93,11 +96,7 @@ const Dropdown = ({
           {value || placeholder}
         </Text>
 
-        <Ionicons
-          name="chevron-down"
-          size={21}
-          color={COLORS.navy}
-        />
+        <Ionicons name="chevron-down" size={21} color={COLORS.navy} />
       </TouchableOpacity>
 
       <Modal
@@ -121,8 +120,10 @@ const Dropdown = ({
             </View>
 
             <View className="flex-row justify-between items-center mb-4">
-              <Text className="text-[19px] font-extrabold"
-                style={{ color: COLORS.navy }}>
+              <Text
+                className="text-[19px] font-extrabold"
+                style={{ color: COLORS.navy }}
+              >
                 {label}
               </Text>
 
@@ -186,8 +187,10 @@ const FormInput = ({
 }) => {
   return (
     <View className="mb-5">
-      <Text className="text-[14px] font-bold mb-2"
-        style={{ color: COLORS.text }}>
+      <Text
+        className="text-[14px] font-bold mb-2"
+        style={{ color: COLORS.text }}
+      >
         {label}
       </Text>
 
@@ -220,8 +223,12 @@ const MedicalLoanEligibilityForm = ({ onSubmit }) => {
   const [income, setIncome] = useState("");
   const [treatment, setTreatment] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (loading) return;
+
     if (!patientName.trim()) {
       setError("Please enter patient name.");
       return;
@@ -243,13 +250,35 @@ const MedicalLoanEligibilityForm = ({ onSubmit }) => {
     }
 
     setError("");
+    setSuccess(false);
+    setLoading(true);
 
-    onSubmit?.({
-      patientName: patientName.trim(),
-      city,
-      monthlyIncome: Number(income),
-      treatment,
-    });
+    try {
+      // Sends data to backend -> saved in DB -> visible in admin dashboard
+      const result = await submitMedicalLoanApplication({
+        patientName: patientName.trim(),
+        city,
+        monthlyIncome: Number(income),
+        treatment,
+      });
+
+      setSuccess(true);
+
+      // Reset form
+      setPatientName("");
+      setCity("");
+      setIncome("");
+      setTreatment("");
+
+      onSubmit?.(result);
+    } catch (err) {
+      setError(
+        err.response?.data?.message ||
+          "Something went wrong. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -265,7 +294,6 @@ const MedicalLoanEligibilityForm = ({ onSubmit }) => {
           paddingBottom: 125,
         }}
       >
-
         {/* Logo */}
         <View className="items-center mt-2 mb-5">
           <Image
@@ -277,29 +305,36 @@ const MedicalLoanEligibilityForm = ({ onSubmit }) => {
 
         {/* Heading */}
         <View className="mb-6">
-          <Text className="text-[25px] font-extrabold leading-[32px]"
-            style={{ color: COLORS.dark }}>
+          <Text
+            className="text-[25px] font-extrabold leading-[32px]"
+            style={{ color: COLORS.dark }}
+          >
             Medical Loan Eligibility{"\n"}Checker
           </Text>
 
-          <View className="w-14 h-1 rounded-full mt-3"
-            style={{ backgroundColor: COLORS.orange }} />
+          <View
+            className="w-14 h-1 rounded-full mt-3"
+            style={{ backgroundColor: COLORS.orange }}
+          />
 
-          <Text className="text-[13px] mt-3 leading-5"
-            style={{ color: "#738194" }}>
+          <Text
+            className="text-[13px] mt-3 leading-5"
+            style={{ color: "#738194" }}
+          >
             Fill in your details to check your medical loan eligibility.
           </Text>
         </View>
 
         {/* Form Fields */}
-        <View
-          className="bg-white rounded-[22px] p-1"
-        >
+        <View className="bg-white rounded-[22px] p-1">
           <FormInput
             label="Patient Name"
             placeholder="Enter your name"
             value={patientName}
-            onChangeText={setPatientName}
+            onChangeText={(v) => {
+              setPatientName(v);
+              setSuccess(false);
+            }}
           />
 
           <Dropdown
@@ -308,16 +343,20 @@ const MedicalLoanEligibilityForm = ({ onSubmit }) => {
             placeholder="Select city"
             value={city}
             options={cities}
-            onSelect={setCity}
+            onSelect={(v) => {
+              setCity(v);
+              setSuccess(false);
+            }}
           />
 
           <FormInput
             label="Net Monthly Income"
             placeholder="Enter your monthly income"
             value={income}
-            onChangeText={(value) =>
-              setIncome(value.replace(/[^0-9]/g, ""))
-            }
+            onChangeText={(value) => {
+              setIncome(value.replace(/[^0-9]/g, ""));
+              setSuccess(false);
+            }}
             keyboardType="numeric"
           />
 
@@ -326,9 +365,23 @@ const MedicalLoanEligibilityForm = ({ onSubmit }) => {
             placeholder="Select your treatment or condition"
             value={treatment}
             options={treatments}
-            onSelect={setTreatment}
+            onSelect={(v) => {
+              setTreatment(v);
+              setSuccess(false);
+            }}
           />
         </View>
+
+        {/* Success */}
+        {success && (
+          <View className="flex-row items-center bg-green-50 p-3 rounded-xl mb-4">
+            <Ionicons name="checkmark-circle" size={18} color="#16A34A" />
+            <Text className="text-green-700 text-[12px] ml-2 flex-1">
+              Your request has been submitted. Our team will contact you
+              shortly.
+            </Text>
+          </View>
+        )}
 
         {/* Error */}
         {!!error && (
@@ -342,17 +395,14 @@ const MedicalLoanEligibilityForm = ({ onSubmit }) => {
 
         {/* Trust Note */}
         <View className="flex-row items-center bg-[#EAF4FF] p-3 rounded-xl mt-1">
-          <Ionicons
-            name="shield-checkmark"
-            size={22}
-            color={COLORS.blue}
-          />
-          <Text className="text-[12px] font-medium ml-2 flex-1"
-            style={{ color: COLORS.navy }}>
+          <Ionicons name="shield-checkmark" size={22} color={COLORS.blue} />
+          <Text
+            className="text-[12px] font-medium ml-2 flex-1"
+            style={{ color: COLORS.navy }}
+          >
             Your information is used to assess your medical loan enquiry.
           </Text>
         </View>
-
       </ScrollView>
 
       {/* Fixed Bottom CTA */}
@@ -366,9 +416,11 @@ const MedicalLoanEligibilityForm = ({ onSubmit }) => {
         <TouchableOpacity
           activeOpacity={0.85}
           onPress={handleSubmit}
+          disabled={loading}
           className="h-[53px] rounded-full flex-row items-center justify-center"
           style={{
             backgroundColor: COLORS.blue,
+            opacity: loading ? 0.7 : 1,
             elevation: 5,
             shadowColor: COLORS.navy,
             shadowOpacity: 0.22,
@@ -376,18 +428,19 @@ const MedicalLoanEligibilityForm = ({ onSubmit }) => {
             shadowOffset: { width: 0, height: 4 },
           }}
         >
-          <Text className="text-white text-[16px] font-extrabold mr-2">
-            Check Eligibility
-          </Text>
+          {loading ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <>
+              <Text className="text-white text-[16px] font-extrabold mr-2">
+                Check Eligibility
+              </Text>
 
-          <Ionicons
-            name="arrow-forward"
-            size={19}
-            color="white"
-          />
+              <Ionicons name="arrow-forward" size={19} color="white" />
+            </>
+          )}
         </TouchableOpacity>
       </View>
-
     </KeyboardAvoidingView>
   );
 };

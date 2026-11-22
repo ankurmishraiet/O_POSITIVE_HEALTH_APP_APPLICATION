@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import {
   View,
@@ -10,10 +9,14 @@ import {
   Pressable,
   ScrollView,
   Image,
+  ActivityIndicator,
 } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
+
+// Adjust this path to where you saved insuranceService.js
+import { submitInsuranceApplication } from "../../service/insurance";
 
 const COLORS = {
   navy: "#123D83",
@@ -75,9 +78,7 @@ const Dropdown = ({
         style={{ color: COLORS.text }}
       >
         {label}
-        {required && (
-          <Text style={{ color: COLORS.orange }}> *</Text>
-        )}
+        {required && <Text style={{ color: COLORS.orange }}> *</Text>}
       </Text>
 
       <TouchableOpacity
@@ -98,11 +99,7 @@ const Dropdown = ({
           {value || placeholder}
         </Text>
 
-        <Ionicons
-          name="chevron-down"
-          size={23}
-          color={COLORS.dark}
-        />
+        <Ionicons name="chevron-down" size={23} color={COLORS.dark} />
       </TouchableOpacity>
 
       <Modal
@@ -134,11 +131,7 @@ const Dropdown = ({
               </Text>
 
               <TouchableOpacity onPress={() => setVisible(false)}>
-                <Ionicons
-                  name="close-circle"
-                  size={26}
-                  color="#8A98A8"
-                />
+                <Ionicons name="close-circle" size={26} color="#8A98A8" />
               </TouchableOpacity>
             </View>
 
@@ -157,9 +150,7 @@ const Dropdown = ({
                     }}
                     className="flex-row items-center justify-between p-4 rounded-xl mb-2"
                     style={{
-                      backgroundColor: selected
-                        ? "#EAF4FF"
-                        : "#F8FAFC",
+                      backgroundColor: selected ? "#EAF4FF" : "#F8FAFC",
                       borderWidth: selected ? 1 : 0,
                       borderColor: COLORS.blue,
                     }}
@@ -174,15 +165,9 @@ const Dropdown = ({
                     </Text>
 
                     <Ionicons
-                      name={
-                        selected
-                          ? "radio-button-on"
-                          : "radio-button-off"
-                      }
+                      name={selected ? "radio-button-on" : "radio-button-off"}
                       size={21}
-                      color={
-                        selected ? COLORS.blue : "#B5C0CC"
-                      }
+                      color={selected ? COLORS.blue : "#B5C0CC"}
                     />
                   </TouchableOpacity>
                 );
@@ -210,9 +195,7 @@ const FormInput = ({
         style={{ color: COLORS.text }}
       >
         {label}
-        {required && (
-          <Text style={{ color: COLORS.orange }}> *</Text>
-        )}
+        {required && <Text style={{ color: COLORS.orange }}> *</Text>}
       </Text>
 
       <TextInput
@@ -239,15 +222,14 @@ const CheckInsuranceForm = ({ onSubmit }) => {
   const [insuranceType, setInsuranceType] = useState("");
   const [document, setDocument] = useState(null);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   // Pick Insurance Document
   const handleDocumentPick = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: [
-          "image/*",
-          "application/pdf",
-        ],
+        type: ["image/*", "application/pdf"],
         copyToCacheDirectory: true,
         multiple: false,
       });
@@ -255,6 +237,7 @@ const CheckInsuranceForm = ({ onSubmit }) => {
       if (!result.canceled && result.assets?.length > 0) {
         setDocument(result.assets[0]);
         setError("");
+        setSuccess(false);
       }
     } catch (err) {
       setError("Unable to select document. Please try again.");
@@ -267,7 +250,9 @@ const CheckInsuranceForm = ({ onSubmit }) => {
   };
 
   // Submit Form
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (loading) return;
+
     if (!policyHolder.trim()) {
       setError("Please enter policy holder name.");
       return;
@@ -294,21 +279,43 @@ const CheckInsuranceForm = ({ onSubmit }) => {
     }
 
     setError("");
+    setSuccess(false);
+    setLoading(true);
 
-    const formData = {
-      policyHolder: policyHolder.trim(),
-      city,
-      treatment,
-      insuranceType,
-      document,
-    };
+    try {
+      const formData = {
+        policyHolder: policyHolder.trim(),
+        city,
+        treatment: treatment.trim(),
+        insuranceType,
+        document,
+      };
 
-    onSubmit?.(formData);
+      // Sends data to backend -> saved in DB -> visible in admin dashboard
+      const result = await submitInsuranceApplication(formData);
+
+      setSuccess(true);
+
+      // Reset form
+      setPolicyHolder("");
+      setCity("");
+      setTreatment("");
+      setInsuranceType("");
+      setDocument(null);
+
+      onSubmit?.(result);
+    } catch (err) {
+      setError(
+        err.response?.data?.message ||
+          "Something went wrong. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <View className="flex-1 bg-white">
-
       <ScrollView
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
@@ -317,7 +324,6 @@ const CheckInsuranceForm = ({ onSubmit }) => {
           paddingBottom: 125,
         }}
       >
-
         {/* O Positive Health Logo */}
         <View className="items-center mt-2 mb-5">
           <Image
@@ -351,7 +357,10 @@ const CheckInsuranceForm = ({ onSubmit }) => {
           required
           placeholder="Enter your name"
           value={policyHolder}
-          onChangeText={setPolicyHolder}
+          onChangeText={(v) => {
+            setPolicyHolder(v);
+            setSuccess(false);
+          }}
         />
 
         {/* City */}
@@ -361,7 +370,10 @@ const CheckInsuranceForm = ({ onSubmit }) => {
           placeholder="Select city"
           value={city}
           options={cities}
-          onSelect={setCity}
+          onSelect={(v) => {
+            setCity(v);
+            setSuccess(false);
+          }}
         />
 
         {/* Treatment */}
@@ -370,7 +382,10 @@ const CheckInsuranceForm = ({ onSubmit }) => {
           required
           placeholder="Enter Treatment or Condition"
           value={treatment}
-          onChangeText={setTreatment}
+          onChangeText={(v) => {
+            setTreatment(v);
+            setSuccess(false);
+          }}
         />
 
         {/* Insurance Type */}
@@ -380,12 +395,14 @@ const CheckInsuranceForm = ({ onSubmit }) => {
           placeholder="Select your insurance type"
           value={insuranceType}
           options={insuranceTypes}
-          onSelect={setInsuranceType}
+          onSelect={(v) => {
+            setInsuranceType(v);
+            setSuccess(false);
+          }}
         />
 
         {/* Document Upload */}
         <View className="mb-5">
-
           <Text
             className="text-[14px] font-bold mb-3"
             style={{ color: COLORS.text }}
@@ -395,7 +412,6 @@ const CheckInsuranceForm = ({ onSubmit }) => {
           </Text>
 
           <View className="flex-row items-center">
-
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={handleDocumentPick}
@@ -406,18 +422,13 @@ const CheckInsuranceForm = ({ onSubmit }) => {
                 borderStyle: "dashed",
               }}
             >
-              <Ionicons
-                name="add"
-                size={30}
-                color={COLORS.blue}
-              />
+              <Ionicons name="add" size={30} color={COLORS.blue} />
             </TouchableOpacity>
 
             <Text className="text-[11px] text-gray-400 ml-3 flex-1">
               Upload insurance card or policy document
               {"\n"}PDF, JPG or PNG
             </Text>
-
           </View>
 
           {/* Selected Document */}
@@ -449,31 +460,34 @@ const CheckInsuranceForm = ({ onSubmit }) => {
               </Text>
 
               <TouchableOpacity onPress={removeDocument}>
-                <Ionicons
-                  name="close-circle"
-                  size={22}
-                  color="#DC2626"
-                />
+                <Ionicons name="close-circle" size={22} color="#DC2626" />
               </TouchableOpacity>
             </View>
           )}
         </View>
 
+        {/* Success Message */}
+        {success && (
+          <View className="flex-row items-center bg-green-50 p-3 rounded-xl mb-4">
+            <Ionicons name="checkmark-circle" size={18} color="#16A34A" />
+
+            <Text className="text-green-700 text-[12px] ml-2 flex-1">
+              Your request has been submitted. Our team will contact you
+              shortly.
+            </Text>
+          </View>
+        )}
+
         {/* Error Message */}
         {!!error && (
           <View className="flex-row items-center bg-red-50 p-3 rounded-xl mb-4">
-            <Ionicons
-              name="alert-circle"
-              size={18}
-              color="#DC2626"
-            />
+            <Ionicons name="alert-circle" size={18} color="#DC2626" />
 
             <Text className="text-red-600 text-[12px] ml-2 flex-1">
               {error}
             </Text>
           </View>
         )}
-
       </ScrollView>
 
       {/* Fixed Bottom Button */}
@@ -487,9 +501,11 @@ const CheckInsuranceForm = ({ onSubmit }) => {
         <TouchableOpacity
           activeOpacity={0.85}
           onPress={handleSubmit}
+          disabled={loading}
           className="h-[49px] rounded-full flex-row items-center justify-center"
           style={{
             backgroundColor: COLORS.blue,
+            opacity: loading ? 0.7 : 1,
             elevation: 4,
             shadowColor: COLORS.navy,
             shadowOpacity: 0.2,
@@ -500,18 +516,19 @@ const CheckInsuranceForm = ({ onSubmit }) => {
             },
           }}
         >
-          <Text className="text-white text-[16px] font-extrabold mr-2">
-            Check Coverage
-          </Text>
+          {loading ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <>
+              <Text className="text-white text-[16px] font-extrabold mr-2">
+                Check Coverage
+              </Text>
 
-          <Ionicons
-            name="arrow-forward"
-            size={19}
-            color="#FFFFFF"
-          />
+              <Ionicons name="arrow-forward" size={19} color="#FFFFFF" />
+            </>
+          )}
         </TouchableOpacity>
       </View>
-
     </View>
   );
 };
