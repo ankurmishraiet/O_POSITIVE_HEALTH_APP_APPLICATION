@@ -1,19 +1,25 @@
-
 import React from "react";
 import { useRouter } from "expo-router";
 import { ScrollView, View } from "react-native";
-import HealthServices from "./HealthServices"
+import HealthServices from "./HealthServices";
 import HomeHeader from "./HomeHeader";
 import HomeSearch from "./HomeSearch";
 import HealthAssistant from "./HealthAssistant";
 import QuickServices from "./QuickService";
 import HealthProgram from "./HealthProgram";
-import OurServices  from "./OurServices";
+import OurServices from "./OurServices";
 import Conditions from "./Conditions";
-import Treatments from "./Treatments"
-import CommunityBanner from "./CommunityBanner"
+import Treatments from "./Treatments";
+import CommunityBanner from "./CommunityBanner";
+import HomeCommunity from "./HomeCommunity";
+import HomeMedia from "./HomeMedia";
+import HomeHospitals from "./HomeHospitals";
+import ChatbotButton from "./ChatbotButton";
+import WhatsAppButton from "./WhatsAppButton";
+
 export default function HomeScreen() {
-   const router = useRouter();
+  const router = useRouter();
+
   return (
     <View className="flex-1 bg-white">
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -24,27 +30,35 @@ export default function HomeScreen() {
         <HealthProgram />
         <OurServices />
         <Conditions />
-       <Treatments
-  onTreatmentPress={(name) => {
-    console.log("Selected:", name);
-  }}
-  onViewAllPress={() => {
-    console.log("View All Treatments");
-  }}
-/>
 
-<CommunityBanner
-  onPress={() => router.push("/community")}
-/>
-<HealthServices
-  onInsurancePress={() => router.push("/forms/insurance")}
-  onLoanPress={() =>
-    router.push("/forms/medical-loan-eligibility")
-  }
-  onOpinionPress={() => router.push("/forms/second-opinion")}
-/>
+        <Treatments
+          onTreatmentPress={(name) => {
+            console.log("Selected:", name);
+          }}
+          onViewAllPress={() => {
+            console.log("View All Treatments");
+          }}
+        />
 
+        <HomeCommunity />
+        <HomeMedia />
+        <HomeHospitals />
+
+        <CommunityBanner onPress={() => router.push("/community")} />
+
+        <HealthServices
+          onInsurancePress={() => router.push("/forms/insurance")}
+          onLoanPress={() => router.push("/forms/medical-loan-eligibility")}
+          onOpinionPress={() => router.push("/forms/second-opinion")}
+        />
       </ScrollView>
+
+      {/* Floating buttons (ScrollView ke bahar) */}
+            <ChatbotButton />
+      <WhatsAppButton
+        bottom={190}
+        message="Hello, I need help with my health query."
+      />
     </View>
   );
 }

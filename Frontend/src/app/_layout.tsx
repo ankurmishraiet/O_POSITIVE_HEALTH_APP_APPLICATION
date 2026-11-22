@@ -9,6 +9,10 @@ export default function RootLayout() {
         <Stack.Screen name="index" />
         <Stack.Screen name="onboarding" />
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen
+          name="video-player"
+          options={{ presentation: "transparentModal", animation: "fade" }}
+        />
       </Stack>
     </ThemeProvider>
   );

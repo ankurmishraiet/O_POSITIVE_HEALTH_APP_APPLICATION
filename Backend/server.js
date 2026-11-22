@@ -8,8 +8,13 @@ const multer = require("multer");
 const connectDB = require("./config/db");
 
 // Import routes
+const adminRoutes = require("./routes/adminRoutes");
+const userRoutes = require("./routes/userRoutes");
 const insuranceRoutes = require("./routes/insurance/insuranceRoutes");
 const medicalLoanRoutes = require("./routes/medical/medicalRoutes");
+const communityRoutes = require("./routes/community/communityRoutes");
+const conditionRoutes = require("./routes/conditions/conditionRoutes");
+const appointmentRoutes = require("./routes/appointments/appointmentRoutes");
 
 const app = express();
 
@@ -30,8 +35,14 @@ app.get("/", (req, res) => {
 });
 
 // Register routes
+// Specific /api/... routes pehle, taaki generic '/api' (userRoutes) unhe na roke
+app.use("/api/admin", adminRoutes);
 app.use("/api/insurance", insuranceRoutes);
 app.use("/api/medical-loan", medicalLoanRoutes);
+app.use("/api/community", communityRoutes);
+app.use("/api/conditions", conditionRoutes);
+app.use("/api/appointments", appointmentRoutes);
+app.use("/api", userRoutes);
 
 // Multer / upload error handler (must come AFTER routes)
 app.use((err, req, res, next) => {

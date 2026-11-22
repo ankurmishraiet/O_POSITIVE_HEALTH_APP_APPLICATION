@@ -49,6 +49,7 @@ function Header() {
 }
 
 function DoctorCard({ doctor }) {
+    const router = useRouter();
   return (
     <View className="mt-6 px-6">
       <View className="flex-row">
@@ -97,7 +98,10 @@ function DoctorCard({ doctor }) {
           </Pressable>
         </View>
       ) : (
-        <Pressable className="mt-3 h-11 flex-row items-center justify-center rounded-full border border-[#2A8FA6]">
+                <Pressable
+          onPress={() => router.push('/doctorProfile/doctorProfile')}
+          className="mt-3 h-11 flex-row items-center justify-center rounded-full border border-[#2A8FA6]"
+        >
           <Image source={require('../../../assets/images/icon-calendar-blue.png')} style={{ width: 20, height: 20 }} />
           <Text className="ml-2 font-bold text-[#1B7FA0]">Book Appointment</Text>
         </Pressable>

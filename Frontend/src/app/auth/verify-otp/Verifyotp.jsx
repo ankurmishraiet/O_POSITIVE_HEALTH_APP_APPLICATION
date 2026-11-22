@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Image, Pressable, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BASE_URL } from '../../../config/api';
 
 export default function VerifyOtp() {
   const router = useRouter();
@@ -37,14 +39,47 @@ export default function VerifyOtp() {
     }
   };
 
-  const handleResend = () => {
-    setOtp(['', '', '', '', '', '']);
-    setSeconds(30);
-    inputs.current[0].focus();
+    const handleResend = async () => {
+    try {
+      const res = await fetch(BASE_URL + '/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.message);
+        return;
+      }
+      setOtp(['', '', '', '', '', '']);
+      setSeconds(30);
+      inputs.current[0].focus();
+    } catch (err) {
+      alert('Server se connect nahi ho paya');
+    }
   };
 
   const canVerify = otp.every((digit) => digit !== '');
   const timeText = `00:${String(seconds).padStart(2, '0')}`;
+    const verifyOtp = async () => {
+    try {
+      const res = await fetch(BASE_URL + '/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, otp: otp.join('') }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.message);
+        return;
+      }
+      await AsyncStorage.setItem('token', data.token);
+      await AsyncStorage.setItem('user', JSON.stringify(data.user));
+      router.replace('/home');
+    } catch (err) {
+      alert('Server se connect nahi ho paya');
+    }
+  };
 
   return (
     <View className="flex-1 bg-white">
@@ -125,7 +160,7 @@ export default function VerifyOtp() {
           className={`mt-[72px] h-12 w-4/5 items-center justify-center rounded-full bg-[#1B4FD8] ${
             canVerify ? '' : 'opacity-50'
           }`}
-          onPress={() => router.push('/')}
+          onPress={verifyOtp}
         >
           <Text className="text-sm font-bold text-white">VERIFY & LOGIN</Text>
         </Pressable>

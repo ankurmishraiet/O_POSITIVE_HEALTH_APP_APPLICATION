@@ -37,7 +37,9 @@ export default function Liver() {
 
       <View className="mt-6 flex-row justify-around">
         <Text className="border-b-4 border-[#1F7BD8] pb-2 font-bold text-[#1F7BD8]">Overview</Text>
-        <Text className="pb-2 font-bold text-gray-400">Doctors</Text>
+                <Pressable onPress={() => router.push('/liverdoctors/liverdoctors')}>
+          <Text className="pb-2 font-bold text-gray-400">Doctors</Text>
+        </Pressable>
         <Text className="pb-2 font-bold text-gray-400">Hospitals</Text>
       </View>
 

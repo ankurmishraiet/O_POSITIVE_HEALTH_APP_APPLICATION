@@ -66,56 +66,15 @@ export default function Insurance() {
 
           {/* Brand Logo */}
 
-          <View className="items-center">
+          
+<View className="items-center">
+  <Image
+    source={require("../../../../assets/images/logo-spaced.png")}
+    style={{ width: 600, height: 100 }}
+    resizeMode="contain"
+  />
+</View>
 
-            <Image
-              source={require("../../../../assets/images/logo_o_positive.png")}
-              resizeMode="contain"
-              style={{ width: 200, height: 64 }}
-            />
-
-            <Text
-              className="mt-1 text-center font-extrabold text-blue-800"
-              style={{
-                fontSize: 18,
-                letterSpacing: 0.5,
-              }}
-            >
-              O POSITIVE HEALTH
-            </Text>
-
-            {/* Tagline */}
-
-            <View className="mt-1 flex-row items-center">
-
-              <View
-                style={{
-                  width: 16,
-                  height: 1.5,
-                  backgroundColor: "#F97316",
-                }}
-              />
-
-              <Text
-                className="mx-2 font-bold text-orange-500"
-                style={{
-                  fontSize: 11,
-                  letterSpacing: 0.5,
-                }}
-              >
-                HOPE STARTS HERE
-              </Text>
-
-              <View
-                style={{
-                  width: 16,
-                  height: 1.5,
-                  backgroundColor: "#F97316",
-                }}
-              />
-
-            </View>
-          </View>
 
           {/* Insurance Illustration */}
 
@@ -166,7 +125,7 @@ export default function Insurance() {
           <View className="mt-5 px-6">
 
             <Pressable
-              onPress={() => router.replace("/home")}
+              onPress={() => router.push("/auth/login/login")}
               className="h-12 flex-row items-center justify-center rounded-full bg-blue-700 active:bg-blue-800"
             >
 

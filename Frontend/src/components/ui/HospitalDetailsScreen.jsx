@@ -1,8 +1,8 @@
-
 import React, { useState } from "react";
 import {
   View,
   Text,
+  Image,
   ScrollView,
   TouchableOpacity,
   SafeAreaView,
@@ -10,6 +10,8 @@ import {
   Linking,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { showImage } from "../../config/api";
 
 const COLORS = {
   navy: "#123D83",
@@ -18,298 +20,214 @@ const COLORS = {
 };
 
 export default function HospitalDetailsScreen({ hospital }) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("Overview");
 
-  const hospitalName = hospital?.name || "Apex Hospital, Borivali West, Chandravarkar Road";
-  const address =
-    hospital?.address ||
-    "Vaishali Heights, Chandavarkar Rd, Mumbai";
+  const doctors = hospital.doctors || [];
+  const phone = hospital.phone ? String(hospital.phone).replace(/\s/g, "") : "";
 
-  const tabs = ["Overview", "Specialities", "Doctors", "Reviews"];
-
-  const handleCall = () => {
-    Linking.openURL("tel:8448534103");
+  const callHospital = () => {
+    Linking.openURL("tel:" + phone);
   };
 
-  const handleWhatsApp = () => {
-    Linking.openURL("https://wa.me/918448534103");
+  const whatsappHospital = () => {
+    Linking.openURL("https://wa.me/" + phone.replace(/\D/g, ""));
   };
 
   const handleBooking = () => {
-    // Connect your appointment booking screen here.
+    alert("Appointment booking jaldi shuru hogi");
+  };
+
+  const openDoctor = (doctor) => {
+    router.push({ pathname: "/doctor-details", params: { id: doctor._id } });
   };
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar backgroundColor="#FFFFFF" barStyle="dark-content" />
 
-      {/* HEADER */}
-      <View className="h-[50px] flex-row items-center px-3 border-b border-gray-100">
-        <TouchableOpacity className="mr-3">
+      <View className="h-[52px] flex-row items-center px-3 border-b border-gray-100">
+        <TouchableOpacity onPress={() => router.back()} className="mr-3">
           <Ionicons name="arrow-back" size={23} color={COLORS.navy} />
         </TouchableOpacity>
 
         <Text
-          className="flex-1 text-[13px] font-bold text-[#123D83]"
+          className="flex-1 text-[14px] font-bold"
+          style={{ color: COLORS.navy }}
           numberOfLines={1}
         >
-          {hospitalName}
+          {hospital.name}
         </Text>
-
-        <View className="flex-row items-center gap-3">
-          <TouchableOpacity onPress={handleCall}>
-            <Ionicons name="call" size={19} color={COLORS.blue} />
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={handleWhatsApp}>
-            <Ionicons name="logo-whatsapp" size={20} color="#08B66A" />
-          </TouchableOpacity>
-
-          <TouchableOpacity>
-            <Ionicons name="search" size={20} color={COLORS.navy} />
-          </TouchableOpacity>
-        </View>
       </View>
 
       <ScrollView
-        className="flex-1"
+        className="flex-1 bg-[#F7F9FC]"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 25 }}
+        contentContainerStyle={{ paddingBottom: 20 }}
       >
-        {/* HOSPITAL INFORMATION */}
-        <View className="px-3 pt-3">
-          <View className="flex-row justify-between items-start">
-
-            {/* LEFT DETAILS */}
-            <View className="flex-1 pr-2">
-              <Text className="text-[16px] font-extrabold leading-[22px] text-[#172033]">
-                {hospitalName}
-              </Text>
-
-              <Text className="mt-2 text-[9px] leading-[14px] text-gray-500">
-                {address}
-              </Text>
-
-              <Text className="mt-1 text-[9px] text-gray-500">
-                Multi-Speciality Hospital
-              </Text>
-
-              <Text className="mt-1 text-[9px] text-gray-500">
-                5 Doctors | 18 Specialities
-              </Text>
+        <View className="bg-white px-4 pb-4 pt-4">
+          {hospital.image ? (
+            <Image
+              source={{ uri: showImage(hospital.image) }}
+              style={{ width: "100%", height: 170, borderRadius: 12 }}
+              resizeMode="cover"
+            />
+          ) : (
+            <View className="h-[120px] w-full items-center justify-center rounded-xl bg-[#EAF4FB]">
+              <Ionicons name="medical" size={40} color={COLORS.blue} />
             </View>
+          )}
 
-            {/* HOSPITAL LOGO */}
-            <View className="h-[65px] w-[90px] items-center justify-center rounded-lg border border-gray-100">
-              <View className="flex-row items-center">
-                <Ionicons name="medical" size={18} color={COLORS.green} />
-                <Text className="ml-1 text-[8px] font-extrabold text-[#087BC1]">
-                  APEX
+          <Text className="mt-3 text-[18px] font-extrabold text-[#172033]">
+            {hospital.name}
+          </Text>
+
+          {hospital.rating ? (
+            <View className="mt-1.5 flex-row items-center">
+              <Ionicons name="star" size={14} color="#FF873C" />
+
+              <Text className="ml-1 text-[12px] font-bold text-[#F27B30]">
+                {hospital.rating}
+              </Text>
+
+              {hospital.reviews ? (
+                <Text className="ml-1 text-[11px] text-gray-500">
+                  ({hospital.reviews} reviews)
                 </Text>
-              </View>
-              <Text className="text-[6px] font-semibold text-gray-500">
-                HOSPITALS
+              ) : null}
+            </View>
+          ) : null}
+
+          {hospital.address || hospital.city ? (
+            <View className="mt-2 flex-row items-start">
+              <Ionicons name="location-outline" size={16} color="#91A3B5" />
+
+              <Text className="ml-1 flex-1 text-[12px] leading-[17px] text-gray-500">
+                {[hospital.address, hospital.city].filter(Boolean).join(", ")}
               </Text>
             </View>
-          </View>
+          ) : null}
 
-          {/* RATING */}
-          <View className="mt-3 flex-row items-center justify-between">
-            <View>
-              <View className="flex-row items-center">
-                <Ionicons name="star" size={13} color="#F58B35" />
-                <Text className="ml-1 text-[10px] font-bold text-green-600">
-                  {hospital?.rating || "4.5/5"} Rating
+          {phone ? (
+            <View className="mt-3 flex-row gap-3">
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={callHospital}
+                className="h-[38px] flex-1 flex-row items-center justify-center gap-2 rounded-full border border-[#087BC1]"
+              >
+                <Ionicons name="call-outline" size={16} color={COLORS.blue} />
+
+                <Text className="text-[12px] font-bold text-[#087BC1]">
+                  Call
                 </Text>
-              </View>
+              </TouchableOpacity>
 
-              <Text className="mt-1 text-[9px] text-gray-500">
-                {hospital?.reviews || "88 Reviews"}
-              </Text>
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={whatsappHospital}
+                className="h-[38px] flex-1 flex-row items-center justify-center gap-2 rounded-full border border-[#25D366]"
+              >
+                <Ionicons name="logo-whatsapp" size={16} color="#25D366" />
+
+                <Text className="text-[12px] font-bold text-[#25D366]">
+                  WhatsApp
+                </Text>
+              </TouchableOpacity>
             </View>
-          </View>
+          ) : null}
 
-          {/* BOOK APPOINTMENT */}
           <TouchableOpacity
-            onPress={handleBooking}
             activeOpacity={0.85}
-            className="mt-3 h-[35px] flex-row items-center justify-center gap-2 rounded-full bg-[#087BC1]"
+            onPress={handleBooking}
+            className="mt-3 h-[44px] items-center justify-center rounded-full"
+            style={{ backgroundColor: COLORS.blue }}
           >
-            <Ionicons name="calendar-outline" size={15} color="white" />
-            <Text className="text-[10px] font-bold text-white">
+            <Text className="text-[14px] font-bold text-white">
               Book Appointment
             </Text>
           </TouchableOpacity>
-
-          {/* WHATSAPP BUTTON */}
-          <TouchableOpacity
-            onPress={handleWhatsApp}
-            className="mt-2 h-[32px] flex-row items-center justify-center gap-2 rounded-full border border-[#16A66A]"
-          >
-            <Ionicons name="logo-whatsapp" size={15} color="#16A66A" />
-            <Text className="text-[10px] font-bold text-[#16A66A]">
-              WhatsApp Enquiry
-            </Text>
-          </TouchableOpacity>
-
-          {/* ENQUIRY MESSAGE */}
-          <View className="mt-3 flex-row items-center justify-center rounded-lg bg-[#EFF7FC] py-2">
-            <Ionicons
-              name="people-outline"
-              size={13}
-              color={COLORS.blue}
-            />
-            <Text className="ml-1 text-[8px] text-[#087BC1]">
-              44 Patients enquired about the Doctor in last 1 hour
-            </Text>
-          </View>
         </View>
 
-        {/* TABS */}
-        <View className="mt-4 flex-row border-b border-gray-200">
-          {tabs.map((tab) => (
+        <View className="h-12 flex-row border-b border-gray-100 bg-white">
+          {["Overview", "Doctors"].map((tab) => (
             <TouchableOpacity
               key={tab}
               onPress={() => setActiveTab(tab)}
-              className="flex-1 items-center justify-center py-3"
+              className={
+                activeTab === tab
+                  ? "flex-1 items-center justify-center border-b-2 border-[#087BC1]"
+                  : "flex-1 items-center justify-center"
+              }
             >
               <Text
-                className={`text-[10px] ${
+                className={
                   activeTab === tab
-                    ? "font-bold text-[#087BC1]"
-                    : "font-medium text-gray-500"
-                }`}
+                    ? "text-[12px] font-bold text-[#087BC1]"
+                    : "text-[12px] text-gray-500"
+                }
               >
-                {tab}
+                {tab === "Doctors" ? "Doctors (" + doctors.length + ")" : tab}
               </Text>
-
-              {activeTab === tab && (
-                <View className="absolute bottom-0 h-[2px] w-[75%] rounded-full bg-[#087BC1]" />
-              )}
             </TouchableOpacity>
           ))}
         </View>
 
-        {/* TAB CONTENT */}
-        <View className="px-3 pt-4">
+        {activeTab === "Overview" ? (
+          <View className="mx-3 mt-3 rounded-xl bg-white p-4">
+            <Text className="text-[15px] font-extrabold text-[#172033]">
+              Overview
+            </Text>
 
-          {activeTab === "Overview" && (
-            <View>
-              <Text className="text-[16px] font-bold text-[#172033]">
-                Overview
-              </Text>
+            <Text className="mt-2 text-[12px] leading-[18px] text-gray-600">
+              {hospital.about || "Is hospital ki zyada jaankari jaldi add hogi."}
+            </Text>
+          </View>
+        ) : (
+          <View>
+            {doctors.map((doctor) => (
+              <TouchableOpacity
+                key={doctor._id}
+                activeOpacity={0.85}
+                onPress={() => openDoctor(doctor)}
+                className="mx-3 mt-3 flex-row items-center rounded-xl bg-white p-3"
+              >
+                <Image
+                  source={
+                    doctor.photo
+                      ? { uri: showImage(doctor.photo) }
+                      : require("../../../assets/images/doctor-avatar.png")
+                  }
+                  style={{ width: 60, height: 60, borderRadius: 30 }}
+                  resizeMode="cover"
+                />
 
-              <Text className="mt-2 text-[11px] leading-[19px] text-gray-600">
-                The Apex Group of Hospitals is the fruition of many
-                people's goals and visions, but most importantly, the
-                patients. Apex Hospitals is committed to providing
-                quality healthcare services with advanced medical
-                facilities and experienced healthcare professionals.
-              </Text>
-
-              <TouchableOpacity className="mt-2 self-end">
-                <Text className="text-[10px] font-bold text-[#087BC1]">
-                  Read more
-                </Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {activeTab === "Specialities" && (
-            <View>
-              <Text className="text-[16px] font-bold text-[#172033]">
-                Specialities
-              </Text>
-
-              {[
-                "General Surgery",
-                "Cardiology",
-                "Orthopaedics",
-                "Gastroenterology",
-                "Neurology",
-                "Urology",
-                "Ophthalmology",
-                "Internal Medicine",
-              ].map((item, index) => (
-                <View
-                  key={index}
-                  className="mt-3 flex-row items-center rounded-lg border border-gray-100 p-3"
-                >
-                  <Ionicons
-                    name="medical-outline"
-                    size={17}
-                    color={COLORS.blue}
-                  />
-                  <Text className="ml-3 text-[11px] font-medium text-gray-700">
-                    {item}
+                <View className="ml-3 flex-1">
+                  <Text className="text-[13px] font-bold text-[#172033]">
+                    {doctor.name}
                   </Text>
-                </View>
-              ))}
-            </View>
-          )}
 
-          {activeTab === "Doctors" && (
-            <View>
-              <Text className="text-[16px] font-bold text-[#172033]">
-                Doctors
-              </Text>
+                  <Text className="mt-0.5 text-[11px] text-gray-500">
+                    {doctor.specialty}
+                  </Text>
 
-              <View className="mt-3 rounded-xl border border-gray-100 p-3">
-                <View className="flex-row items-center">
-                  <View className="h-12 w-12 items-center justify-center rounded-full bg-blue-50">
-                    <Ionicons
-                      name="person"
-                      size={25}
-                      color={COLORS.blue}
-                    />
-                  </View>
-
-                  <View className="ml-3 flex-1">
-                    <Text className="text-[12px] font-bold text-gray-800">
-                      Hospital Specialist
+                  {doctor.experience ? (
+                    <Text className="mt-0.5 text-[11px] text-gray-500">
+                      Experience: {doctor.experience} years
                     </Text>
-                    <Text className="mt-1 text-[10px] text-gray-500">
-                      Experienced Medical Professional
-                    </Text>
-                  </View>
+                  ) : null}
                 </View>
 
-                <Text className="mt-3 text-[10px] text-gray-500">
-                  Contact us to know about available doctors.
-                </Text>
-              </View>
-            </View>
-          )}
+                <Ionicons name="chevron-forward" size={18} color="#91A3B5" />
+              </TouchableOpacity>
+            ))}
 
-          {activeTab === "Reviews" && (
-            <View>
-              <Text className="text-[16px] font-bold text-[#172033]">
-                Patient Reviews
+            {doctors.length === 0 && (
+              <Text className="mt-10 text-center text-[12px] text-gray-500">
+                Is hospital ke doctors abhi add nahi hue
               </Text>
-
-              <View className="mt-3 rounded-xl border border-gray-100 p-4">
-                <Text className="text-[24px] font-extrabold text-[#123D83]">
-                  {hospital?.rating || "4.5/5"}
-                </Text>
-
-                <View className="mt-1 flex-row">
-                  {[1, 2, 3, 4, 5].map((item) => (
-                    <Ionicons
-                      key={item}
-                      name="star"
-                      size={15}
-                      color="#F58B35"
-                    />
-                  ))}
-                </View>
-
-                <Text className="mt-2 text-[10px] text-gray-500">
-                  Based on {hospital?.reviews || "88 Reviews"}
-                </Text>
-              </View>
-            </View>
-          )}
-        </View>
+            )}
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

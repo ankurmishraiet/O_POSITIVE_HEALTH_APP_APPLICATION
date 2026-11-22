@@ -9,9 +9,9 @@ export default function HomeHeader() {
       <View className="flex-row items-center justify-between">
         
         <Image
-              source={require("../../../assets/images/logo_o_positive.png")}
+              source={require("../../../assets/images/logo-spaced.png")}
               resizeMode="contain"
-              style={{ width: 200, height: 64 }}
+              style={{ width: 200, height: 64, right:40}}
             />
 
         <View className="flex-row items-center gap-4">

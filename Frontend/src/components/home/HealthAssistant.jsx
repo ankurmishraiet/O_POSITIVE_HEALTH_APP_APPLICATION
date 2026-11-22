@@ -2,8 +2,10 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 export default function HealthAssistant() {
+  const router = useRouter();
   return (
     <View className="mx-4 mt-1 bg-sky-600 rounded-2xl p-4 overflow-hidden">
       <View className="flex-row justify-between items-center">
@@ -17,7 +19,10 @@ export default function HealthAssistant() {
             from our health assistant.
           </Text>
 
-          <TouchableOpacity className="bg-orange-500 rounded-full px-4 py-2 mt-3 self-start">
+          <TouchableOpacity
+            onPress={() => router.push("/chatbot/chatbot")}
+            className="bg-orange-500 rounded-full px-4 py-2 mt-3 self-start"
+          >
             <Text className="text-white font-bold text-xs">
               Chat Now →
             </Text>
