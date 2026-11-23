@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
   Image,
-  Linking,
   Pressable,
   ScrollView,
   Text,
@@ -51,11 +50,12 @@ export default function Media() {
       try {
         const videoRes = await fetch(BASE_URL + '/videos');
         const videoData = await videoRes.json();
-        if (Array.isArray(videoData)) setVideos(videoData.slice(0, 2));
+        // 10 tak dikhao, baaki View All par
+        if (Array.isArray(videoData)) setVideos(videoData.slice(0, 10));
 
         const articleRes = await fetch(BASE_URL + '/articles');
         const articleData = await articleRes.json();
-        if (Array.isArray(articleData)) setArticles(articleData.slice(0, 2));
+        if (Array.isArray(articleData)) setArticles(articleData.slice(0, 10));
       } catch (err) {
         console.log('Videos aur articles load nahi hue');
       }
@@ -63,11 +63,13 @@ export default function Media() {
     loadData();
   }, []);
 
+  // video aur article dono ka same card style: photo left, detail right
   const cardStyle = {
     marginHorizontal: 17 * s,
     marginBottom: 12 * s,
     borderRadius: 16 * s,
     backgroundColor: '#FFFFFF',
+    height: 116 * s,
     shadowColor: '#2846A0',
     shadowOpacity: 0.12,
     shadowRadius: 14,
@@ -96,40 +98,47 @@ export default function Media() {
           <Pressable
             key={item._id}
             onPress={() =>
-  router.push({
-    pathname: '/video-player',
-    params: { url: item.youtubeUrl, title: item.title },
-  })
-}
-            style={{ ...cardStyle, paddingBottom: 12 * s }}
+              router.push({
+                pathname: '/video-player',
+                params: { url: item.youtubeUrl, title: item.title },
+              })
+            }
+            className="flex-row overflow-hidden"
+            style={cardStyle}
           >
             {item.thumbnail ? (
               <Image
                 source={{ uri: showImage(item.thumbnail) }}
-                style={{ width: '100%', height: 148 * s, borderRadius: 14 * s }}
+                style={{ width: 144 * s, height: 116 * s }}
                 resizeMode="cover"
               />
             ) : (
               <View
                 className="items-center justify-center bg-[#EEF0F6]"
-                style={{ width: '100%', height: 148 * s, borderRadius: 14 * s }}
+                style={{ width: 144 * s, height: 116 * s }}
               >
                 <Text className="text-[#1B5FD8]" style={{ fontSize: 32 * s }}>▶</Text>
               </View>
             )}
-            <Text
-              className="font-extrabold text-[#1B2A6B]"
-              style={{ fontSize: 14 * s, marginTop: 10 * s, marginHorizontal: 14 * s }}
-              numberOfLines={2}
+            <View
+              className="flex-1 justify-between"
+              style={{
+                paddingLeft: 14 * s,
+                paddingRight: 14 * s,
+                paddingVertical: 14 * s,
+              }}
             >
-              {item.title}
-            </Text>
-            <Text
-              className="text-[#666666]"
-              style={{ fontSize: 12 * s, marginTop: 4 * s, marginLeft: 14 * s }}
-            >
-              {item.createdAt.slice(0, 10)}
-            </Text>
+              <Text
+                className="font-extrabold text-[#1B2A6B]"
+                style={{ fontSize: 14 * s, lineHeight: 22 * s }}
+                numberOfLines={3}
+              >
+                {item.title}
+              </Text>
+              <Text className="text-[#666666]" style={{ fontSize: 12 * s }}>
+                {item.createdAt.slice(0, 10)}
+              </Text>
+            </View>
           </Pressable>
         ))}
 
@@ -152,7 +161,7 @@ export default function Media() {
               router.push({ pathname: '/article-details', params: { id: item._id } })
             }
             className="flex-row overflow-hidden"
-            style={{ ...cardStyle, height: 116 * s }}
+            style={cardStyle}
           >
             {item.image ? (
               <Image

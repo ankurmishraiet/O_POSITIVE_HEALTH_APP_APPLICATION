@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Image, Linking, Pressable, ScrollView, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { BASE_URL, showImage } from '../config/api';
 
@@ -42,49 +42,52 @@ export default function AllVideos() {
       </Text>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 30 }}>
+        {/* Card: photo left, detail right (articles jaisa) */}
         {videos.map((item) => (
           <Pressable
             key={item._id}
             onPress={() =>
-  router.push({
-    pathname: '/video-player',
-    params: { url: item.youtubeUrl, title: item.title },
-  })
-}
-            className="mx-[17px] mb-3 rounded-2xl bg-white pb-3"
+              router.push({
+                pathname: '/video-player',
+                params: { url: item.youtubeUrl, title: item.title },
+              })
+            }
+            className="mx-[17px] mb-3 h-[116px] flex-row overflow-hidden rounded-2xl bg-white"
             style={cardShadow}
           >
             {item.thumbnail ? (
               <Image
                 source={{ uri: showImage(item.thumbnail) }}
-                style={{ width: '100%', height: 148, borderRadius: 14 }}
+                style={{ width: 144, height: 116 }}
                 resizeMode="cover"
               />
             ) : (
               <View
                 className="items-center justify-center bg-[#EEF0F6]"
-                style={{ width: '100%', height: 148, borderRadius: 14 }}
+                style={{ width: 144, height: 116 }}
               >
                 <Text className="text-[32px] text-[#1B5FD8]">▶</Text>
               </View>
             )}
 
-            <Text
-              className="ml-[14px] mr-[14px] mt-[10px] text-[14px] font-extrabold text-[#1B2A6B]"
-              numberOfLines={2}
-            >
-              {item.title}
-            </Text>
-
-            <View className="ml-[14px] mt-1 flex-row items-center">
-              {item.category ? (
-                <Text className="mr-3 rounded-full bg-[#EEF3FF] px-2 py-[2px] text-[11px] font-bold text-[#1B5FD8]">
-                  {item.category}
-                </Text>
-              ) : null}
-              <Text className="text-[12px] text-[#666666]">
-                {item.createdAt.slice(0, 10)}
+            <View className="flex-1 justify-between py-[14px] pl-[14px] pr-[14px]">
+              <Text
+                className="text-[14px] font-extrabold leading-[22px] text-[#1B2A6B]"
+                numberOfLines={2}
+              >
+                {item.title}
               </Text>
+
+              <View className="flex-row items-center">
+                {item.category ? (
+                  <Text className="mr-3 rounded-full bg-[#EEF3FF] px-2 py-[2px] text-[11px] font-bold text-[#1B5FD8]">
+                    {item.category}
+                  </Text>
+                ) : null}
+                <Text className="text-[12px] text-[#666666]">
+                  {item.createdAt.slice(0, 10)}
+                </Text>
+              </View>
             </View>
           </Pressable>
         ))}

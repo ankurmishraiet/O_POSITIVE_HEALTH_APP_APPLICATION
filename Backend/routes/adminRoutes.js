@@ -8,6 +8,7 @@ const Hospital = require('../models/hospitalModel');
 const Video = require('../models/videoModel');
 const Article = require('../models/articleModel');
 const upload = require('../middleware/upload');
+const { uploadImage } = require('../config/cloudinary');
 const { getFeedbacks } = require('../controllers/admin/feedbackAdminController');
 const router = express.Router();
 
@@ -32,16 +33,25 @@ resources.forEach(([path, Model, label]) => {
   router.put('/' + path + '/:id', protect, c.update);
   router.delete('/' + path + '/:id', protect, c.remove);
 });
+
 router.get('/feedbacks', protect, getFeedbacks);
+
 router.post('/upload', protect, (req, res) => {
-  upload.single('image')(req, res, (err) => {
+  upload.single('image')(req, res, async (err) => {
     if (err) {
       return res.status(400).json({ message: err.message });
     }
     if (!req.file) {
       return res.status(400).json({ message: 'Image chuno' });
     }
-    res.json({ url: '/api/uploads/' + req.file.filename });
+    try {
+      // Cloudinary par bhejo aur online link wapas do
+      const url = await uploadImage(req.file.buffer);
+      res.json({ url });
+    } catch (e) {
+      console.log('Cloudinary upload error:', e.message);
+      res.status(500).json({ message: 'Image upload nahi ho payi' });
+    }
   });
 });
 

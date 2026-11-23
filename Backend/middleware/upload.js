@@ -1,20 +1,7 @@
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 
-const folder = path.join(__dirname, '..', 'uploads');
-
-if (!fs.existsSync(folder)) {
-  fs.mkdirSync(folder);
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, folder),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, Date.now() + '-' + Math.round(Math.random() * 1000000) + ext);
-  },
-});
+// photo disk par nahi, memory me rakhte hain (Cloudinary par bhejne ke liye)
+const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
   if (file.mimetype.startsWith('image/')) {
