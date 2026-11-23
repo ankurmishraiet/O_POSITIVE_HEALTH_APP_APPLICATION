@@ -1,12 +1,10 @@
-// services/insuranceService.js
 import { Platform } from "react-native";
 import api from "./api";
 
 export const submitInsuranceApplication = async (formData) => {
   const doc = formData.document;
 
-  // Log only small info (the picked object can contain a huge base64 string on web)
-  console.log("Uploading document:", doc?.name, doc?.mimeType, doc?.uri);
+  console.log("Uploading document:", doc?.name, doc?.mimeType);
 
   if (!doc?.uri) {
     throw new Error("Selected document has no file path. Please pick it again.");
@@ -19,10 +17,9 @@ export const submitInsuranceApplication = async (formData) => {
   body.append("treatmentCondition", formData.treatment);
   body.append("insuranceType", formData.insuranceType);
 
-  // Field name MUST match upload.single("insuranceDocument") on the backend
+  // Field name backend ke upload.single("insuranceDocument") se match hona chahiye
   if (Platform.OS === "web") {
-    // On web, the picker returns a blob: URL. FormData needs a real File/Blob,
-    // not the { uri, name, type } object used on Android/iOS.
+    // Web par blob chahiye hota hai
     const fileOrBlob = doc.file || (await (await fetch(doc.uri)).blob());
     body.append("insuranceDocument", fileOrBlob, doc.name || "insurance-document");
   } else {
@@ -33,21 +30,14 @@ export const submitInsuranceApplication = async (formData) => {
     });
   }
 
-  // Do NOT set Content-Type manually. The browser/RN adds the multipart boundary.
-  const response = await fetch(`${api.defaults.baseURL}/insurance/apply`, {
-    method: "POST",
-    headers: { Accept: "application/json" },
-    body,
+  // Naye Expo ka fetch file upload nahi karta, isliye axios use kiya
+  const response = await api.post("/insurance/apply", body, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      Accept: "application/json",
+    },
+    transformRequest: (data) => data,
   });
 
-  const json = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    console.error("Insurance API Error:", json);
-    const error = new Error(json.message || "Request failed");
-    error.response = { data: json };
-    throw error;
-  }
-
-  return json;
+  return response.data;
 };
