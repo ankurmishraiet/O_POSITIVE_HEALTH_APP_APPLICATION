@@ -8,6 +8,8 @@ const emptyForm = {
   name: "",
   city: "",
   phone: "",
+  rating: "",
+  ratingCount: "",
   address: "",
   image: "",
   about: "",
@@ -17,6 +19,8 @@ const fields = [
   ["name", "Hospital name"],
   ["city", "City"],
   ["phone", "Phone"],
+  ["rating", "Rating (0 to 5)"],
+  ["ratingCount", "Number of ratings"],
 ];
 
 const inputStyle = {
@@ -59,10 +63,13 @@ export default function Hospitals() {
   };
 
   const openEdit = (h) => {
+    // purane hospitals mein naye fields nahi hote, isliye || "" lagaya hai
     setForm({
       name: h.name,
       city: h.city,
       phone: h.phone,
+      rating: h.rating || "",
+      ratingCount: h.ratingCount || "",
       address: h.address,
       image: h.image,
       about: h.about,
@@ -126,7 +133,7 @@ export default function Hospitals() {
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
           <thead>
             <tr style={{ color: C.orange, textAlign: "left" }}>
-              {["Hospital", "City", "Address", "Phone", "Actions"].map((h) => (
+              {["Hospital", "City", "Address", "Phone", "Rating", "Actions"].map((h) => (
                 <th key={h} style={{ padding: "14px 18px", fontWeight: 500 }}>{h}</th>
               ))}
             </tr>
@@ -151,6 +158,7 @@ export default function Hospitals() {
                 </td>
                 <td style={{ padding: "12px 18px", color: C.muted }}>{h.address}</td>
                 <td style={{ padding: "12px 18px" }}>{h.phone}</td>
+                <td style={{ padding: "12px 18px" }}>{h.rating > 0 ? "★ " + h.rating : "-"}</td>
                 <td style={{ padding: "12px 18px" }}>
                   <button onClick={() => openEdit(h)} style={{ border: "none", background: "none", cursor: "pointer", color: C.indigo, fontWeight: 600, fontFamily: font, marginRight: 14 }}>Edit</button>
                   <button onClick={() => deleteHospital(h._id)} style={{ border: "none", background: "none", cursor: "pointer", color: C.red, fontWeight: 600, fontFamily: font }}>Delete</button>
@@ -159,7 +167,7 @@ export default function Hospitals() {
             ))}
             {shown.length === 0 && (
               <tr>
-                <td colSpan={5} style={{ padding: 24, textAlign: "center", color: C.muted }}>Koi hospital nahi mila</td>
+                <td colSpan={6} style={{ padding: 24, textAlign: "center", color: C.muted }}>Koi hospital nahi mila</td>
               </tr>
             )}
           </tbody>
@@ -178,6 +186,10 @@ export default function Hospitals() {
                     name={key}
                     value={form[key]}
                     onChange={handleChange}
+                    type={key === "rating" || key === "ratingCount" ? "number" : "text"}
+                    min={key === "rating" || key === "ratingCount" ? 0 : undefined}
+                    max={key === "rating" ? 5 : undefined}
+                    step={key === "rating" ? "0.1" : undefined}
                     required={key === "name"}
                     style={inputStyle}
                   />

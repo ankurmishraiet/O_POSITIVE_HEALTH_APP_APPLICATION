@@ -7,9 +7,11 @@ const API = "http://localhost:5000/api/admin/doctors";
 const emptyForm = {
   name: "",
   specialty: "",
+  qualification: "",
   hospital: "",
   experience: "",
   fees: "",
+  rating: "",
   city: "",
   photo: "",
   about: "",
@@ -18,9 +20,11 @@ const emptyForm = {
 const fields = [
   ["name", "Name"],
   ["specialty", "Specialty"],
+  ["qualification", "Qualification (e.g. MBBS, MD)"],
   ["hospital", "Hospital"],
   ["experience", "Experience (years)"],
   ["fees", "Consultation fees (₹)"],
+  ["rating", "Rating (0 to 5)"],
   ["city", "City"],
 ];
 
@@ -64,12 +68,15 @@ export default function Doctors() {
   };
 
   const openEdit = (d) => {
+    // purane doctors mein naye fields nahi hote, isliye || "" lagaya hai
     setForm({
       name: d.name,
       specialty: d.specialty,
+      qualification: d.qualification || "",
       hospital: d.hospital,
       experience: d.experience,
       fees: d.fees,
+      rating: d.rating || "",
       city: d.city,
       photo: d.photo,
       about: d.about,
@@ -133,7 +140,7 @@ export default function Doctors() {
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
           <thead>
             <tr style={{ color: C.orange, textAlign: "left" }}>
-              {["Doctor", "Specialty", "Hospital", "Experience", "Fees", "Actions"].map((h) => (
+              {["Doctor", "Specialty", "Hospital", "Experience", "Fees", "Rating", "Actions"].map((h) => (
                 <th key={h} style={{ padding: "14px 18px", fontWeight: 500 }}>{h}</th>
               ))}
             </tr>
@@ -159,6 +166,7 @@ export default function Doctors() {
                 <td style={{ padding: "12px 18px", color: C.muted }}>{d.hospital}</td>
                 <td style={{ padding: "12px 18px" }}>{d.experience} years</td>
                 <td style={{ padding: "12px 18px" }}>₹{d.fees}</td>
+                <td style={{ padding: "12px 18px" }}>{d.rating > 0 ? "★ " + d.rating : "-"}</td>
                 <td style={{ padding: "12px 18px" }}>
                   <button onClick={() => openEdit(d)} style={{ border: "none", background: "none", cursor: "pointer", color: C.indigo, fontWeight: 600, fontFamily: font, marginRight: 14 }}>Edit</button>
                   <button onClick={() => deleteDoctor(d._id)} style={{ border: "none", background: "none", cursor: "pointer", color: C.red, fontWeight: 600, fontFamily: font }}>Delete</button>
@@ -167,7 +175,7 @@ export default function Doctors() {
             ))}
             {shown.length === 0 && (
               <tr>
-                <td colSpan={6} style={{ padding: 24, textAlign: "center", color: C.muted }}>Koi doctor nahi mila</td>
+                <td colSpan={7} style={{ padding: 24, textAlign: "center", color: C.muted }}>Koi doctor nahi mila</td>
               </tr>
             )}
           </tbody>
@@ -186,7 +194,10 @@ export default function Doctors() {
                     name={key}
                     value={form[key]}
                     onChange={handleChange}
-                    type={key === "experience" || key === "fees" ? "number" : "text"}
+                    type={key === "experience" || key === "fees" || key === "rating" ? "number" : "text"}
+                    min={key === "rating" ? 0 : undefined}
+                    max={key === "rating" ? 5 : undefined}
+                    step={key === "rating" ? "0.1" : undefined}
                     required={key === "name" || key === "specialty"}
                     style={inputStyle}
                   />
