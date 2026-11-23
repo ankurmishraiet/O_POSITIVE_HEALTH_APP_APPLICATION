@@ -48,7 +48,7 @@ export default function HospitalsScreen() {
   };
 
   return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
       <StatusBar backgroundColor="#FFFFFF" barStyle="dark-content" />
 
       <View className="h-[52px] flex-row items-center px-3 border-b border-gray-100">
@@ -135,17 +135,18 @@ export default function HospitalsScreen() {
                   {hospital.name}
                 </Text>
 
-                {hospital.rating ? (
+                {/* rating (sirf jab 0 se bada ho) */}
+                {hospital.rating > 0 ? (
                   <View className="mt-1.5 flex-row items-center">
                     <Ionicons name="star" size={13} color="#FF873C" />
 
                     <Text className="ml-1 text-[10px] font-bold text-[#F27B30]">
-                      {hospital.rating}
+                      {Number(hospital.rating).toFixed(1)}
                     </Text>
 
-                    {hospital.reviews ? (
+                    {hospital.ratingCount > 0 ? (
                       <Text className="ml-1 text-[9px] text-gray-500">
-                        ({hospital.reviews})
+                        ({hospital.ratingCount})
                       </Text>
                     ) : null}
                   </View>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { BASE_URL, showImage } from '../../config/api';
 
@@ -76,6 +77,13 @@ export default function AllDoctors() {
                 {item.specialty}
               </Text>
 
+              {/* qualification (jo bhari ho) */}
+              {item.qualification ? (
+                <Text className="mt-0.5 text-[11px] text-[#666666]">
+                  {item.qualification}
+                </Text>
+              ) : null}
+
               {item.hospital ? (
                 <Text className="mt-1 text-[12px] text-[#555555]">
                   {item.hospital}
@@ -89,6 +97,16 @@ export default function AllDoctors() {
                     {item.experience} years
                   </Text>
                 </Text>
+              ) : null}
+
+              {/* rating (sirf jab 0 se bada ho) */}
+              {item.rating > 0 ? (
+                <View className="mt-1 flex-row items-center">
+                  <Ionicons name="star" size={13} color="#F5A623" />
+                  <Text className="ml-1 text-[12px] font-bold text-[#111111]">
+                    {Number(item.rating).toFixed(1)}/5
+                  </Text>
+                </View>
               ) : null}
             </View>
           </Pressable>

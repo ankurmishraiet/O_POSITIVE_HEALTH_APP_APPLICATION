@@ -123,6 +123,23 @@ export default function DoctorDetails() {
                   <Text className="mt-1 text-[14px] font-semibold text-[#087BC1]">
                     {doctor.specialty}
                   </Text>
+
+                  {/* qualification (jo bhari ho) */}
+                  {doctor.qualification ? (
+                    <Text className="mt-1 text-[12px] text-[#5B6B7F]" numberOfLines={2}>
+                      {doctor.qualification}
+                    </Text>
+                  ) : null}
+
+                  {/* rating (sirf jab 0 se bada ho) */}
+                  {doctor.rating > 0 ? (
+                    <View className="mt-1.5 flex-row items-center">
+                      <Ionicons name="star" size={14} color="#F5A623" />
+                      <Text className="ml-1 text-[13px] font-bold text-[#172033]">
+                        {Number(doctor.rating).toFixed(1)}/5
+                      </Text>
+                    </View>
+                  ) : null}
                 </View>
               </View>
 

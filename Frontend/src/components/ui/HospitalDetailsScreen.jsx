@@ -158,17 +158,22 @@ export default function HospitalDetailsScreen({ hospital }) {
               <Text className="mt-0.5 text-[11px] text-[#5B6B7F]">Services</Text>
             </View>
 
-            {hospital.rating ? (
+            {/* rating (sirf jab 0 se bada ho) */}
+            {hospital.rating > 0 ? (
               <>
                 <View className="w-[1px] bg-[#DCE4EE]" />
                 <View className="flex-1 items-center">
                   <View className="flex-row items-center">
                     <Ionicons name="star" size={13} color="#FF873C" />
                     <Text className="ml-1 text-[16px] font-extrabold text-[#123D83]">
-                      {hospital.rating}
+                      {Number(hospital.rating).toFixed(1)}
                     </Text>
                   </View>
-                  <Text className="mt-0.5 text-[11px] text-[#5B6B7F]">Rating</Text>
+                  <Text className="mt-0.5 text-[11px] text-[#5B6B7F]">
+                    {hospital.ratingCount > 0
+                      ? "Rating (" + hospital.ratingCount + ")"
+                      : "Rating"}
+                  </Text>
                 </View>
               </>
             ) : null}
@@ -288,10 +293,28 @@ export default function HospitalDetailsScreen({ hospital }) {
                   <Text className="mt-0.5 text-[13px] text-[#087BC1]">
                     {doctor.specialty}
                   </Text>
+
+                  {/* qualification (jo bhari ho) */}
+                  {doctor.qualification ? (
+                    <Text className="mt-0.5 text-[12px] text-[#5B6B7F]" numberOfLines={1}>
+                      {doctor.qualification}
+                    </Text>
+                  ) : null}
+
                   {doctor.experience ? (
                     <Text className="mt-0.5 text-[12px] text-[#5B6B7F]">
                       {doctor.experience} years experience
                     </Text>
+                  ) : null}
+
+                  {/* rating (sirf jab 0 se bada ho) */}
+                  {doctor.rating > 0 ? (
+                    <View className="mt-1 flex-row items-center">
+                      <Ionicons name="star" size={13} color="#F5A623" />
+                      <Text className="ml-1 text-[12px] font-bold text-[#172033]">
+                        {Number(doctor.rating).toFixed(1)}/5
+                      </Text>
+                    </View>
                   ) : null}
                 </View>
 

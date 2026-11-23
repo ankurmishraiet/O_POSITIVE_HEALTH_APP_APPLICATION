@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Image, ScrollView, Text, View, Pressable } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { BASE_URL, showImage } from '../../config/api';
 
@@ -29,6 +30,22 @@ function SectionHeader({ title, onViewAll }) {
           View All
         </Text>
       </Pressable>
+    </View>
+  );
+}
+
+// chhoti star rating (sirf jab rating 0 se badi ho)
+function StarRating({ rating, count }) {
+  if (!(rating > 0)) return null;
+  return (
+    <View className="mt-1 flex-row items-center">
+      <Ionicons name="star" size={13} color="#F5A623" />
+      <Text className="ml-1 text-[12px] font-bold text-[#111111]">
+        {Number(rating).toFixed(1)}
+      </Text>
+      {count > 0 ? (
+        <Text className="ml-1 text-[11px] text-[#666666]">({count})</Text>
+      ) : null}
     </View>
   );
 }
@@ -111,6 +128,11 @@ export default function HomeHospitals() {
                 {[item.address, item.city].filter(Boolean).join(', ')}
               </Text>
             ) : null}
+
+            {/* rating */}
+            <View className="ml-[14px]">
+              <StarRating rating={item.rating} count={item.ratingCount} />
+            </View>
           </Pressable>
         ))}
       </ScrollView>
@@ -161,14 +183,27 @@ export default function HomeHospitals() {
                 {item.specialty}
               </Text>
 
+              {/* qualification (jo bhari ho) */}
+              {item.qualification ? (
+                <Text
+                  className="mt-0.5 text-[11px] text-[#666666]"
+                  numberOfLines={1}
+                >
+                  {item.qualification}
+                </Text>
+              ) : null}
+
               {item.experience ? (
-                <Text className="mt-2 text-[12px] text-[#555555]">
+                <Text className="mt-1 text-[12px] text-[#555555]">
                   Experience:{' '}
                   <Text className="font-bold text-[#111111]">
                     {item.experience} years
                   </Text>
                 </Text>
               ) : null}
+
+              {/* rating */}
+              <StarRating rating={item.rating} />
             </View>
           </Pressable>
         ))}

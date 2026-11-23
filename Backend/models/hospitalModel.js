@@ -8,6 +8,8 @@ const hospitalSchema = new mongoose.Schema(
     address: { type: String, default: '', trim: true },
     image: { type: String, default: '' },
     about: { type: String, default: '' },
+    rating: { type: Number, default: 0, min: 0, max: 5 },
+    ratingCount: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
