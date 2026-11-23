@@ -5,12 +5,13 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   StatusBar,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { BASE_URL, showImage } from "../../config/api";
+import AppointmentModal from "../forms/AppointmentModal";
 
 const COLORS = {
   navy: "#123D83",
@@ -21,6 +22,8 @@ const COLORS = {
 export default function HospitalsScreen() {
   const router = useRouter();
   const [hospitals, setHospitals] = useState([]);
+  // Jis hospital ka button dabaya wo yahan save hota hai (null = pop-up band)
+  const [bookingHospital, setBookingHospital] = useState(null);
 
   useEffect(() => {
     const loadHospitals = async () => {
@@ -39,12 +42,13 @@ export default function HospitalsScreen() {
     router.push({ pathname: "/hospital-details", params: { id: hospital._id } });
   };
 
-  const handleBooking = () => {
-    alert("Appointment booking jaldi shuru hogi");
+  // Button dabane par us hospital ko save karke pop-up kholo
+  const handleBooking = (hospital) => {
+    setBookingHospital(hospital);
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
       <StatusBar backgroundColor="#FFFFFF" barStyle="dark-content" />
 
       <View className="h-[52px] flex-row items-center px-3 border-b border-gray-100">
@@ -165,7 +169,7 @@ export default function HospitalsScreen() {
 
             <TouchableOpacity
               activeOpacity={0.8}
-              onPress={handleBooking}
+              onPress={() => handleBooking(hospital)}
               className="mt-3 h-[32px] flex-row items-center justify-center gap-2 rounded-full border border-[#087BC1]"
             >
               <Ionicons name="calendar-outline" size={14} color={COLORS.blue} />
@@ -180,9 +184,16 @@ export default function HospitalsScreen() {
         {hospitals.length === 0 && (
           <Text className="mt-10 text-center text-[12px] text-gray-500">
             Abhi koi hospital nahi hai
-          </Text>                                                                                     
+          </Text>
         )}
       </ScrollView>
+
+      {/* Appointment pop-up, chune hue hospital ka naam saath jata hai */}
+      <AppointmentModal
+        visible={bookingHospital !== null}
+        onClose={() => setBookingHospital(null)}
+        context={{ hospitalName: bookingHospital ? bookingHospital.name : "" }}
+      />
     </SafeAreaView>
   );
 }

@@ -2,19 +2,35 @@ import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
+  Linking,
   Pressable,
   ScrollView,
+  StatusBar,
   Text,
   View,
 } from 'react-native';
+// status bar ke neeche se shuru ho isliye ye SafeAreaView
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { BASE_URL, showImage } from '../config/api';
+import { WHATSAPP_NUMBER } from '../constants/contact';
+import AppointmentModal from '../components/forms/AppointmentModal';
+
+// doctor ki services (abhi fixed list)
+const SERVICES = [
+  { label: 'Appointment help', icon: 'calendar-outline', bg: '#DCEBF7', color: '#087BC1' },
+  { label: 'Doctor consultation', icon: 'person-outline', bg: '#E4F3F4', color: '#0F6E7A' },
+  { label: 'Insurance support', icon: 'shield-checkmark-outline', bg: '#E8F4DC', color: '#2E5E0F' },
+  { label: 'Medical loan help', icon: 'cash-outline', bg: '#FDEBDD', color: '#B35309' },
+];
 
 export default function DoctorDetails() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const [doctor, setDoctor] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [bookingOpen, setBookingOpen] = useState(false);
 
   useEffect(() => {
     const loadDoctor = async () => {
@@ -35,14 +51,24 @@ export default function DoctorDetails() {
     loadDoctor();
   }, [id]);
 
+  // O Positive team ko WhatsApp
+  const whatsappTeam = () => {
+    const name = doctor ? doctor.name : 'doctor';
+    const text = 'Hello, mujhe ' + name + ' ke saath appointment ke baare me jaankari chahiye.';
+    Linking.openURL('https://wa.me/' + WHATSAPP_NUMBER + '?text=' + encodeURIComponent(text));
+  };
+
   return (
-    <View className="flex-1 bg-white">
-      <View className="mt-12 h-14 flex-row items-center px-5">
-        <Pressable onPress={() => router.back()}>
-          <Image source={require('../../assets/images/arrow-back.png')} style={{ width: 28, height: 28 }} />
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+      <StatusBar backgroundColor="#FFFFFF" barStyle="dark-content" />
+
+      {/* Header */}
+      <View className="h-[56px] flex-row items-center border-b border-gray-100 px-3">
+        <Pressable onPress={() => router.back()} className="mr-3">
+          <Ionicons name="arrow-back" size={24} color="#123D83" />
         </Pressable>
-        <Text className="ml-3 flex-1 text-xl font-extrabold text-[#0F1F4D]" numberOfLines={1}>
-          {doctor ? doctor.name : 'Doctor'}
+        <Text className="flex-1 text-[16px] font-bold text-[#123D83]" numberOfLines={1}>
+          Doctor
         </Text>
       </View>
 
@@ -53,95 +79,147 @@ export default function DoctorDetails() {
           <Text className="text-base text-gray-500">Doctor nahi mila</Text>
         </View>
       ) : (
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <View className="px-5">
-            <Text className="mt-3 text-2xl font-extrabold text-[#0F1F4D]">{doctor.name}</Text>
-
-            <View className="mt-4 flex-row">
+        <>
+          <ScrollView
+            className="flex-1 bg-[#F4F7FB]"
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 24 }}
+          >
+            {/* Photo + naam */}
+            <View className="items-center bg-white px-4 pb-5 pt-6">
               <Image
                 source={
                   doctor.photo
                     ? { uri: showImage(doctor.photo) }
                     : require('../../assets/images/doctor-avatar.png')
                 }
-                style={{ width: 110, height: 110, borderRadius: 55 }}
+                style={{ width: 112, height: 112, borderRadius: 56 }}
                 resizeMode="cover"
               />
-              <View className="ml-4 flex-1">
-                <Text className="text-sm leading-5 text-gray-500">{doctor.specialty}</Text>
 
+              <Text className="mt-3.5 text-[22px] font-extrabold text-[#172033]">
+                {doctor.name}
+              </Text>
+              <Text className="mt-1 text-[15px] font-semibold text-[#087BC1]">
+                {doctor.specialty}
+              </Text>
+
+              <View className="mt-3 flex-row flex-wrap justify-center">
                 {doctor.experience ? (
-                  <View className="mt-2 flex-row items-center">
-                    <Image
-                      source={require('../../assets/images/icon-experience.png')}
-                      style={{ width: 14, height: 14 }}
-                    />
-                    <Text className="ml-1 text-sm font-bold text-[#0F1F4D]">
-                      Experience: {doctor.experience} Years
+                  <View className="m-1 rounded-full bg-[#EEF3F9] px-3 py-1.5">
+                    <Text className="text-[12px] font-semibold text-[#3C4C63]">
+                      {doctor.experience} years experience
                     </Text>
                   </View>
                 ) : null}
 
-                {doctor.fees ? (
-                  <Text className="mt-2 text-sm text-gray-700">
-                    Consultation Fee:{' '}
-                    <Text className="font-bold text-[#0F1F4D]">Rs. {doctor.fees}</Text>
+                <View className="m-1 rounded-full bg-[#E8F4DC] px-3 py-1.5">
+                  <Text className="text-[12px] font-semibold text-[#2E5E0F]">
+                    O Positive partner
                   </Text>
+                </View>
+
+                {doctor.fees ? (
+                  <View className="m-1 rounded-full bg-[#FDEBDD] px-3 py-1.5">
+                    <Text className="text-[12px] font-semibold text-[#B35309]">
+                      Fee: Rs. {doctor.fees}
+                    </Text>
+                  </View>
                 ) : null}
               </View>
+
+              {/* Hospital card */}
+              {doctor.hospital ? (
+                <View className="mt-4 w-full flex-row items-center rounded-xl bg-[#F4F7FB] p-3">
+                  <View className="h-10 w-10 items-center justify-center rounded-[10px] bg-[#DCEBF7]">
+                    <Ionicons name="medical" size={22} color="#087BC1" />
+                  </View>
+                  <View className="ml-2.5 flex-1">
+                    <Text className="text-[12px] text-[#5B6B7F]">Practices at</Text>
+                    <Text className="text-[14px] font-bold text-[#172033]">
+                      {doctor.hospital}
+                      {doctor.city ? ', ' + doctor.city : ''}
+                    </Text>
+                  </View>
+                </View>
+              ) : null}
             </View>
 
-            <View className="mt-4 self-start rounded-lg bg-[#E8F0FB] px-3 py-2">
-              <Text className="text-xs font-bold text-[#123D83]">O Positive Health Partner</Text>
-            </View>
-
-            <Pressable
-              onPress={() => alert('Appointment booking jaldi shuru hogi')}
-              className="mt-4 h-12 items-center justify-center"
-            >
-              <Image
-                source={require('../../assets/images/button-blue.png')}
-                style={{ position: 'absolute', width: '100%', height: 48, borderRadius: 24 }}
-              />
-              <Text className="text-base font-extrabold text-white">Book Appointment</Text>
-            </Pressable>
-
-            <View className="mt-5 self-center rounded bg-[#EEF4FB] px-8 py-2">
-              <Text className="text-xs text-gray-500">Contact our team for appointment assistance</Text>
-            </View>
-          </View>
-
-          <View className="mt-5 bg-[#F4F6FA] pt-4">
-            <Text className="self-start border-b-4 border-[#F58220] px-5 pb-3 font-extrabold text-[#0F1F4D]">
-              Overview
-            </Text>
-          </View>
-
-          <View className="px-5 pb-10">
-            <Text className="mt-5 text-3xl font-extrabold text-[#0F1F4D]">Overview</Text>
-            <Text className="mt-3 text-base leading-6 text-gray-700">
-              {doctor.about || 'More details about this doctor will be added soon.'}
-            </Text>
-
-            {doctor.hospital ? (
-              <View>
-                <Text className="mt-5 text-3xl font-extrabold text-[#0F1F4D]">Hospital</Text>
-                <Text className="mt-3 text-base text-gray-700">
-                  {doctor.hospital}
-                  {doctor.city ? ', ' + doctor.city : ''}
+            <View className="px-4 pt-4">
+              {/* About */}
+              <View className="rounded-2xl border border-[#E3E9F1] bg-white p-4">
+                <Text className="text-[16px] font-bold text-[#172033]">About the doctor</Text>
+                <Text className="mt-2 text-[14px] leading-[22px] text-[#44546A]">
+                  {doctor.about || 'More details about this doctor will be added soon.'}
+                </Text>
+                <Text className="mt-2 text-[12px] text-gray-500">
+                  Contact our team for appointment assistance
                 </Text>
               </View>
-            ) : null}
 
-            <Text className="mt-5 text-3xl font-extrabold text-[#0F1F4D]">Specialization</Text>
-            <View className="mt-3 flex-row">
-              <Text className="rounded-full bg-[#E6EFFB] px-4 py-2 text-xs font-bold text-[#123D83]">
-                {doctor.specialty}
+              {/* Specialization */}
+              <View className="mt-3 rounded-2xl border border-[#E3E9F1] bg-white p-4">
+                <Text className="text-[16px] font-bold text-[#172033]">Specialization</Text>
+                <View className="mt-2.5 flex-row">
+                  <Text className="rounded-full bg-[#DCEBF7] px-3 py-1.5 text-[13px] font-semibold text-[#0B4F7A]">
+                    {doctor.specialty}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Our services */}
+              <Text className="mb-2.5 ml-1 mt-5 text-[16px] font-bold text-[#172033]">
+                Our services
               </Text>
+              <View className="flex-row flex-wrap justify-between">
+                {SERVICES.map((s) => (
+                  <View
+                    key={s.label}
+                    className="mb-3 w-[48%] flex-row items-center rounded-[14px] border border-[#E3E9F1] bg-white p-3"
+                  >
+                    <View
+                      className="h-9 w-9 items-center justify-center rounded-[10px]"
+                      style={{ backgroundColor: s.bg }}
+                    >
+                      <Ionicons name={s.icon} size={20} color={s.color} />
+                    </View>
+                    <Text className="ml-2.5 flex-1 text-[13px] font-semibold leading-[18px] text-[#172033]">
+                      {s.label}
+                    </Text>
+                  </View>
+                ))}
+              </View>
             </View>
+          </ScrollView>
+
+          {/* Neeche fixed bar: WhatsApp Us + Book Appointment */}
+          <View className="h-[80px] flex-row items-center gap-3 border-t border-gray-100 bg-white px-4">
+            <Pressable
+              onPress={whatsappTeam}
+              className="h-[50px] flex-1 items-center justify-center rounded-full border border-[#25D366]"
+            >
+              <Text className="text-[14px] font-bold text-[#167A47]">WhatsApp Us</Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => setBookingOpen(true)}
+              className="h-[50px] items-center justify-center rounded-full bg-[#087BC1]"
+              style={{ flex: 1.3 }}
+            >
+              <Text className="text-[14px] font-bold text-white">Book Appointment</Text>
+            </Pressable>
           </View>
-        </ScrollView>
+        </>
       )}
-    </View>
+
+      <AppointmentModal
+        visible={bookingOpen}
+        onClose={() => setBookingOpen(false)}
+        context={{
+          doctorName: doctor ? doctor.name : '',
+          hospitalName: doctor && doctor.hospital ? doctor.hospital : '',
+        }}
+      />
+    </SafeAreaView>
   );
 }

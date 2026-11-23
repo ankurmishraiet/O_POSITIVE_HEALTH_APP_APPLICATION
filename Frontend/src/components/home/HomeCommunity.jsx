@@ -1,7 +1,21 @@
-import { useState } from 'react';
-import { Image, Pressable, Text, TextInput, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
-const categories = ['All', 'Cancer', 'Orthopaedics', 'Cardiology'];
+import { fetchQuestions } from '../../service/communityService';
+
+// Community ki categories (backend jaisi hi spelling)
+const categories = [
+  'All',
+  'General Surgery',
+  'Orthopedics',
+  'Cardiology',
+  'Ophthalmology',
+  'Gynecology',
+  'Urology',
+  'Insurance',
+  'Medical Loan',
+  'Other',
+];
 
 const cardShadow = {
   shadowColor: '#2846A0',
@@ -14,11 +28,45 @@ const cardShadow = {
 export default function HomeCommunity() {
   const [selected, setSelected] = useState('All');
   const [question, setQuestion] = useState('');
-    const router = useRouter();
+  const router = useRouter();
+
+  // Community se aaya hua sawal
+  const [post, setPost] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [readMore, setReadMore] = useState(false);
+
+  // Chip badalte hi us category ka sawal laao
+  useEffect(() => {
+    const loadPost = async () => {
+      try {
+        setLoading(true);
+        setReadMore(false);
+        const res = await fetchQuestions({ tab: 'feed', category: selected, page: 1 });
+        const list = res.data || [];
+        // Jis sawal par expert ka jawab hai wo pehle, warna pehla sawal
+        const withExpert = list.find((q) => q.answers.some((a) => a.isExpert));
+        setPost(withExpert || list[0] || null);
+      } catch (err) {
+        setPost(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadPost();
+  }, [selected]);
+
+  // Pehla jawab (expert ho to wahi pehle aata hai)
+  const answer = post && post.answers.length > 0 ? post.answers[0] : null;
+  const isLong = answer && answer.text.length > 140;
 
   return (
     <View className="bg-white pb-6">
-      <View className="mt-2 flex-row px-[18px]">
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 18 }}
+        className="mt-2"
+      >
         {categories.map((item) => {
           const active = selected === item;
           return (
@@ -35,40 +83,71 @@ export default function HomeCommunity() {
             </Pressable>
           );
         })}
-      </View>
+      </ScrollView>
 
       <View
         className="mx-[17px] mt-[18px] rounded-[20px] bg-white p-[18px]"
         style={cardShadow}
       >
-        <Text className="text-[20px] font-extrabold leading-[27px] text-[#111111]">
-          Is a Referral Required for Treatment Under the Ayushman CAPF Scheme?
-        </Text>
-
-        <View className="mt-[14px] flex-row items-center">
-          <View className="h-8 w-8 items-center justify-center rounded-full bg-[#E8A21B]">
-            <Text className="text-[10px] font-bold text-white">OP</Text>
-          </View>
-          <Text className="ml-[10px] text-[15px] font-extrabold text-[#2328B0]">
-            O Positive Health Team
+        {loading ? (
+          <ActivityIndicator color="#1B7FD0" />
+        ) : !post ? (
+          <Text className="text-[14px] text-[#444444]">
+            Is category mein abhi koi sawal nahi hai.
           </Text>
-        </View>
+        ) : (
+          <View>
+            <Text className="text-[20px] font-extrabold leading-[27px] text-[#111111]">
+              {post.question}
+            </Text>
 
-        <Text className="mt-3 text-[12px] leading-[21px] text-[#444444]">
-          Hello, a referral is not required for every treatment under the CAPF
-          Ayushman scheme. It depends on the patient...{' '}
-          <Text className="text-[#1B7FD0] underline">Read more</Text>
-        </Text>
+            {answer ? (
+              <View>
+                <View className="mt-[14px] flex-row items-center">
+                  <View className="h-8 w-8 items-center justify-center rounded-full bg-[#E8A21B]">
+                    <Text className="text-[10px] font-bold text-white">
+                      {answer.authorName.slice(0, 2).toUpperCase()}
+                    </Text>
+                  </View>
+                  <Text className="ml-[10px] text-[15px] font-extrabold text-[#2328B0]">
+                    {answer.authorName}
+                  </Text>
+                </View>
 
-        <View className="mt-[14px] flex-row items-center justify-between">
-          <Text className="text-[12.5px] font-bold text-[#1B8FD0] underline">
-            View All Answers
-          </Text>
-          <View className="flex-row items-center">
-            <Text className="mr-[22px] text-[26px] text-[#1B8FD0]">♡</Text>
-            <Text className="text-[24px] text-[#1B8FD0]">↗</Text>
+                <Text
+                  numberOfLines={readMore ? undefined : 3}
+                  className="mt-3 text-[12px] leading-[21px] text-[#444444]"
+                >
+                  {answer.text}
+                </Text>
+
+                {isLong && (
+                  <Pressable onPress={() => setReadMore(!readMore)}>
+                    <Text className="text-[12px] text-[#1B7FD0] underline">
+                      {readMore ? 'Show less' : 'Read more'}
+                    </Text>
+                  </Pressable>
+                )}
+              </View>
+            ) : (
+              <Text className="mt-3 text-[12px] leading-[21px] text-[#444444]">
+                Abhi koi jawab nahi aaya hai. Community mein pehla jawab aap de sakte hain.
+              </Text>
+            )}
+
+            <View className="mt-[14px] flex-row items-center justify-between">
+              <Pressable onPress={() => router.push('/community')}>
+                <Text className="text-[12.5px] font-bold text-[#1B8FD0] underline">
+                  View All Answers
+                </Text>
+              </Pressable>
+              <View className="flex-row items-center">
+                <Text className="mr-[22px] text-[26px] text-[#1B8FD0]">♡</Text>
+                <Text className="text-[24px] text-[#1B8FD0]">↗</Text>
+              </View>
+            </View>
           </View>
-        </View>
+        )}
       </View>
 
       <View className="mx-[17px] mt-[18px] rounded-[20px] bg-[#DCEAFB] px-[18px] pb-[18px] pt-5">
@@ -98,7 +177,7 @@ export default function HomeCommunity() {
             value={question}
             onChangeText={setQuestion}
           />
-                    <Pressable
+          <Pressable
             onPress={() => {
               if (question.trim()) {
                 router.push({ pathname: '/chatbot/chatbot', params: { question } });

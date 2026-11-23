@@ -15,6 +15,9 @@ const appointmentSchema = new mongoose.Schema(
     conditionName: { type: String, default: "" },
     doctorName: { type: String, default: "" },
     hospitalName: { type: String, default: "" },
+    
+    // Kis user ne request bheji (login ho to), My Appointments ke liye
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", index: true },
 
     status: {
       type: String,

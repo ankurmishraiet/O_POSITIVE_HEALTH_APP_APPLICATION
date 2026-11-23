@@ -1,8 +1,21 @@
+const jwt = require("jsonwebtoken");
 const Appointment = require("../../models/AppointmentRequest/AppointmentRequest");
 
 const fail = (res, err, code = 500) => {
   console.error("Appointment API error:", err.message);
   res.status(code).json({ success: false, message: err.message || "Server error" });
+};
+
+// Login token ho to user id nikalo, guest ke liye undefined
+const getUserId = (req) => {
+  try {
+    const header = req.headers.authorization;
+    if (!header || !header.startsWith("Bearer ")) return undefined;
+    const decoded = jwt.verify(header.split(" ")[1], process.env.JWT_SECRET);
+    return decoded.id;
+  } catch (err) {
+    return undefined;
+  }
 };
 
 /* ------------------------------ PUBLIC ------------------------------ */
@@ -34,6 +47,7 @@ exports.createAppointment = async (req, res) => {
       conditionName,
       doctorName,
       hospitalName,
+      userId: getUserId(req),
     });
 
     res.status(201).json({
@@ -43,6 +57,18 @@ exports.createAppointment = async (req, res) => {
     });
   } catch (err) {
     fail(res, err, 400);
+  }
+};
+
+/* ------------------------------ USER (login ke baad) ------------------------------ */
+
+// GET /api/appointments/my  (sirf us user ki apni requests)
+exports.myAppointments = async (req, res) => {
+  try {
+    const data = await Appointment.find({ userId: req.user._id }).sort({ createdAt: -1 });
+    res.json({ success: true, data });
+  } catch (err) {
+    fail(res, err);
   }
 };
 

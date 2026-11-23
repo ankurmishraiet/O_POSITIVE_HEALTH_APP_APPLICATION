@@ -1,147 +1,171 @@
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, Image, Pressable, ScrollView, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { BASE_URL, showImage } from '../../config/api';
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  RefreshControl,
+  StatusBar,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { fetchMyAppointments } from "../../service/appointmentService";
 
-export default function Appointments() {
+const COLORS = {
+  navy: "#123D83",
+  blue: "#087BC1",
+};
+
+// Status ka naam aur rang
+const STATUS = {
+  pending: { label: "Request received", color: "#F58220" },
+  contacted: { label: "Team ne call kiya", color: "#087BC1" },
+  confirmed: { label: "Confirmed", color: "#2E9E4F" },
+  cancelled: { label: "Cancelled", color: "#D93025" },
+};
+
+const formatDate = (d) =>
+  new Date(d).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+
+export default function AppointmentsScreen() {
   const router = useRouter();
-  const [tab, setTab] = useState('upcoming');
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState("");
 
-  const loadAppointments = async (type) => {
+  const loadAppointments = async () => {
     try {
-      setLoading(true);
-      const token = await AsyncStorage.getItem('token');
-      const res = await fetch(BASE_URL + '/appointments?type=' + type, {
-        headers: { Authorization: 'Bearer ' + token },
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setItems(data);
-      } else {
-        alert(data.message);
-      }
+      setError("");
+      const res = await fetchMyAppointments();
+      setItems(res.data || []);
     } catch (err) {
-      alert('Server se connect nahi ho paya');
+      if (err.response && err.response.status === 401) {
+        setError("Apni appointments dekhne ke liye pehle login karo.");
+      } else {
+        setError("Appointments load nahi hui. Dobara try karo.");
+      }
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
   useEffect(() => {
-    loadAppointments(tab);
-  }, [tab]);
-
-  const cancelAppointment = async (id) => {
-    try {
-      const token = await AsyncStorage.getItem('token');
-      const res = await fetch(BASE_URL + '/appointments/' + id + '/cancel', {
-        method: 'PUT',
-        headers: { Authorization: 'Bearer ' + token },
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        alert(data.message);
-        return;
-      }
-      setItems(items.filter((item) => item._id !== id));
-    } catch (err) {
-      alert('Server se connect nahi ho paya');
-    }
-  };
+    loadAppointments();
+  }, []);
 
   return (
-    <View className="flex-1 bg-[#F7F8FA]">
-      <View className="flex-row items-center bg-white px-4 pb-4 pt-12" style={{ elevation: 3 }}>
-        <Pressable onPress={() => router.back()} className="p-2">
-          <Image
-            source={require('../../../assets/images/arrow-back.png')}
-            style={{ width: 22, height: 22 }}
-            resizeMode="contain"
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
+      <StatusBar backgroundColor="#FFFFFF" barStyle="dark-content" />
+
+      <View className="h-[52px] flex-row items-center px-3 border-b border-gray-100">
+        <TouchableOpacity onPress={() => router.back()} className="mr-3">
+          <Ionicons name="arrow-back" size={23} color={COLORS.navy} />
+        </TouchableOpacity>
+
+        <Text
+          className="flex-1 text-[14px] font-bold"
+          style={{ color: COLORS.navy }}
+        >
+          My Appointments
+        </Text>
+      </View>
+
+      <ScrollView
+        className="flex-1 bg-[#F7F9FC]"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 20 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => {
+              setRefreshing(true);
+              loadAppointments();
+            }}
           />
-        </Pressable>
-        <Text className="ml-4 text-xl font-bold text-[#111111]">My Appointments</Text>
-      </View>
+        }
+      >
+        {loading ? (
+          <View className="mt-16 items-center">
+            <ActivityIndicator size="large" color={COLORS.blue} />
+          </View>
+        ) : error ? (
+          <Text className="mt-16 px-6 text-center text-[13px] text-gray-500">
+            {error}
+          </Text>
+        ) : items.length === 0 ? (
+          <Text className="mt-16 px-6 text-center text-[13px] text-gray-500">
+            Abhi koi appointment request nahi hai. Doctor ya hospital se Book Appointment dabao.
+          </Text>
+        ) : (
+          items.map((item) => {
+            const status = STATUS[item.status] || STATUS.pending;
+            const title =
+              item.doctorName ||
+              item.hospitalName ||
+              item.conditionName ||
+              "Appointment request";
 
-      <View className="flex-row px-4 pt-4">
-        <Pressable
-          onPress={() => setTab('upcoming')}
-          className={`mr-3 rounded-full px-8 py-3 ${tab === 'upcoming' ? 'bg-[#0E99C9]' : 'bg-white'}`}
-        >
-          <Text className={`text-base ${tab === 'upcoming' ? 'text-white' : 'text-gray-500'}`}>Upcoming</Text>
-        </Pressable>
-        <Pressable
-          onPress={() => setTab('past')}
-          className={`rounded-full px-8 py-3 ${tab === 'past' ? 'bg-[#0E99C9]' : 'bg-white'}`}
-        >
-          <Text className={`text-base ${tab === 'past' ? 'text-white' : 'text-gray-500'}`}>Past</Text>
-        </Pressable>
-      </View>
+            return (
+              <View
+                key={item._id}
+                className="mx-3 mt-3 rounded-xl bg-white p-4 border border-gray-100"
+              >
+                <View className="flex-row items-start justify-between">
+                  <Text className="flex-1 pr-2 text-[14px] font-bold text-[#172033]">
+                    {title}
+                  </Text>
 
-      {loading ? (
-        <ActivityIndicator className="mt-10" color="#0E99C9" />
-      ) : items.length === 0 ? (
-        <View className="flex-1 items-center justify-center">
-          <Text className="text-2xl font-bold text-[#111111]">No Appointments</Text>
-        </View>
-      ) : (
-        <ScrollView className="px-4" showsVerticalScrollIndicator={false}>
-          {items.map((item) => (
-            <View key={item._id} className="mt-4 rounded-2xl bg-white p-4" style={{ elevation: 2 }}>
-              <View className="flex-row items-center">
-                {item.doctor?.photo ? (
-                  <Image
-                    source={{ uri: showImage(item.doctor.photo) }}
-                    style={{ width: 56, height: 56, borderRadius: 28 }}
-                  />
-                ) : (
-                  <View className="h-14 w-14 items-center justify-center rounded-full bg-[#0E99C9]">
-                    <Text className="text-2xl font-bold text-white">D</Text>
+                  <View
+                    className="rounded-full px-3 py-1"
+                    style={{ backgroundColor: status.color + "22" }}
+                  >
+                    <Text
+                      className="text-[10px] font-bold"
+                      style={{ color: status.color }}
+                    >
+                      {status.label}
+                    </Text>
                   </View>
-                )}
-                <View className="ml-4 flex-1">
-                  <Text className="text-lg font-bold text-[#111111]">
-                    {item.doctor?.name || 'Doctor'}
-                  </Text>
-                  <Text className="text-sm text-gray-500">{item.doctor?.specialty || ''}</Text>
                 </View>
-                <View className="rounded-full bg-[#E6F3FB] px-3 py-1">
-                  <Text className="text-[11px] font-bold uppercase text-[#111111]">{item.status}</Text>
-                </View>
-              </View>
 
-              <View className="mt-3 flex-row justify-between">
-                <View>
-                  <Text className="text-xs text-gray-500">Patient</Text>
-                  <Text className="text-sm font-bold text-[#111111]">{item.patientName}</Text>
-                </View>
-                <View>
-                  <Text className="text-xs text-gray-500">Date</Text>
-                  <Text className="text-sm font-bold text-[#111111]">
-                    {new Date(item.date).toDateString()}
+                {item.hospitalName && item.doctorName ? (
+                  <Text className="mt-1 text-[12px] text-gray-500">
+                    {item.hospitalName}
                   </Text>
-                </View>
-                <View>
-                  <Text className="text-xs text-gray-500">Time</Text>
-                  <Text className="text-sm font-bold text-[#111111]">{item.timeSlot}</Text>
-                </View>
-              </View>
+                ) : null}
 
-              {tab === 'upcoming' && (
-                <Pressable
-                  onPress={() => cancelAppointment(item._id)}
-                  className="mt-4 h-11 items-center justify-center rounded-full border border-[#D93025]"
-                >
-                  <Text className="text-sm font-bold text-[#D93025]">Cancel Appointment</Text>
-                </Pressable>
-              )}
-            </View>
-          ))}
-          <View className="h-10" />
-        </ScrollView>
-      )}
-    </View>
+                {item.conditionName ? (
+                  <Text className="mt-1 text-[12px] text-gray-500">
+                    Condition: {item.conditionName}
+                  </Text>
+                ) : null}
+
+                <Text className="mt-2 text-[12px] text-gray-600">
+                  Preferred: {item.preferredDate}, {item.preferredTime}
+                </Text>
+
+                <Text className="mt-1 text-[11px] text-gray-400">
+                  Request bheji: {formatDate(item.createdAt)}
+                </Text>
+
+                {item.adminNote ? (
+                  <Text className="mt-2 text-[12px] text-[#123D83]">
+                    Team ka note: {item.adminNote}
+                  </Text>
+                ) : null}
+              </View>
+            );
+          })
+        )}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
