@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { sendOtp, verifyOtp } = require('../controllers/user/userAuthController');
+const { register, login, forgotPassword, resetPassword } = require('../controllers/user/userAuthController');
 const { getProfile, updateProfile } = require('../controllers/user/userProfileController');
 const { getMembers, addMember, deleteMember } = require('../controllers/user/familyController');
 
@@ -16,8 +16,12 @@ const Video = require('../models/videoModel');
 const Article = require('../models/articleModel');
 const nodePath = require('path');
 
-router.post('/auth/send-otp', sendOtp);
-router.post('/auth/verify-otp', verifyOtp);
+// Email wale auth routes
+router.post('/auth/register', register);
+router.post('/auth/login', login);
+router.post('/auth/forgot-password', forgotPassword);
+router.post('/auth/reset-password', resetPassword);
+
 router.post('/chat', chat);
 
 router.get('/profile', userProtect, getProfile);

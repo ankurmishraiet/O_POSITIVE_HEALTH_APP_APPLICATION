@@ -1,81 +1,66 @@
-import { useEffect, useRef, useState } from 'react';
-import { Image, Pressable, Text, TextInput, View, useWindowDimensions } from 'react-native';
+import { useEffect, useState } from 'react';
+import {
+  Image, Pressable, ScrollView, Text, TextInput, View, useWindowDimensions,
+} from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
 import { BASE_URL } from '../../../config/api';
 
-export default function VerifyOtp() {
+export default function Verifyotp() {
   const router = useRouter();
-  const { phone } = useLocalSearchParams();
+  const { email } = useLocalSearchParams();
   const { width, height } = useWindowDimensions();
   const [s, setS] = useState(1);
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  const [seconds, setSeconds] = useState(30);
-  const inputs = useRef([]);
+  const [otp, setOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     setS(Math.min(width / 393, height / 852));
   }, [width, height]);
 
-  useEffect(() => {
-    if (seconds === 0) return;
-    const timer = setTimeout(() => setSeconds(seconds - 1), 1000);
-    return () => clearTimeout(timer);
-  }, [seconds]);
+  const canReset = otp.length === 6 && newPassword !== '' && confirm !== '';
 
-  const handleChange = (text, index) => {
-    const digit = text.replace(/[^0-9]/g, '').slice(-1);
-    const newOtp = [...otp];
-    newOtp[index] = digit;
-    setOtp(newOtp);
-    if (digit && index < 5) {
-      inputs.current[index + 1].focus();
+  // OTP check karke naya password set karo
+  const resetPassword = async () => {
+    // Password kam se kam 8 akshar ka ho, letter aur number dono ho
+    if (newPassword.length < 8 || !/[A-Za-z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
+      alert('Password kam se kam 8 akshar ka ho, usme letter aur number dono hon');
+      return;
     }
-  };
-
-  const handleKeyPress = (event, index) => {
-    if (event.nativeEvent.key === 'Backspace' && !otp[index] && index > 0) {
-      inputs.current[index - 1].focus();
+    if (newPassword !== confirm) {
+      alert('Dono password same nahi hain');
+      return;
     }
-  };
-
-    const handleResend = async () => {
     try {
-      const res = await fetch(BASE_URL + '/auth/send-otp', {
+      const res = await fetch(BASE_URL + '/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone }),
+        body: JSON.stringify({ email, otp, newPassword }),
       });
       const data = await res.json();
       if (!res.ok) {
         alert(data.message);
         return;
       }
-      setOtp(['', '', '', '', '', '']);
-      setSeconds(30);
-      inputs.current[0].focus();
+      alert(data.message);
+      router.replace('/auth/login/login');
     } catch (err) {
       alert('Server se connect nahi ho paya');
     }
   };
 
-  const canVerify = otp.every((digit) => digit !== '');
-  const timeText = `00:${String(seconds).padStart(2, '0')}`;
-    const verifyOtp = async () => {
+  // OTP dobara bhejo
+  const resendOtp = async () => {
     try {
-      const res = await fetch(BASE_URL + '/auth/verify-otp', {
+      const res = await fetch(BASE_URL + '/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, otp: otp.join('') }),
+        body: JSON.stringify({ email }),
       });
       const data = await res.json();
-      if (!res.ok) {
-        alert(data.message);
-        return;
-      }
-      await AsyncStorage.setItem('token', data.token);
-      await AsyncStorage.setItem('user', JSON.stringify(data.user));
-      router.replace('/home');
+      alert(data.message);
     } catch (err) {
       alert('Server se connect nahi ho paya');
     }
@@ -105,66 +90,107 @@ export default function VerifyOtp() {
         style={{ position: 'absolute', bottom: 0, right: 0, width: 239 * s, height: 149 * s }}
       />
 
-      <View
-        style={{
-          flex: 1,
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
           alignItems: 'center',
           paddingHorizontal: 24,
-          paddingTop: 132 * s,
-          paddingBottom: 160 * s,
+          paddingTop: 50 * s,
+          paddingBottom: 130 * s,
         }}
       >
         <Image
           source={require('../../../../assets/images/logo-spaced.png')}
-          style={{ width: 200 * s, height: 101 * s }}
+          style={{ width: 180 * s, height: 91 * s }}
           resizeMode="contain"
         />
 
-        <Text className="mt-12 text-[22px] font-bold text-[#1B3FB0]">Verify OTP</Text>
-        <Text className="mt-1.5 text-xs text-gray-700">Enter the 6-digit OTP sent to</Text>
-        <Text className="mt-1 text-xs font-bold text-[#0F2A6B]">+91 {phone || 'XXXXXXXXXX'}</Text>
+        <Image
+          source={require('../../../../assets/images/auth-lock.png')}
+          style={{ width: 230 * s, height: 140 * s, marginTop: 8 * s }}
+          resizeMode="contain"
+        />
 
-        <View className="mt-9 flex-row">
-          {otp.map((digit, index) => (
-            <TextInput
-              key={index}
-              ref={(input) => (inputs.current[index] = input)}
-              className="rounded-lg border border-[#D5DBE8] bg-white text-center text-base font-bold text-[#0F2A6B]"
-              style={{
-                width: 46 * s,
-                height: 52 * s,
-                marginHorizontal: 5 * s,
-                outlineStyle: 'none',
-              }}
-              keyboardType="number-pad"
-              maxLength={1}
-              value={digit}
-              onChangeText={(text) => handleChange(text, index)}
-              onKeyPress={(event) => handleKeyPress(event, index)}
-            />
-          ))}
+        <Text className="mt-2 text-center text-[26px] font-bold text-[#0F2A6B]">
+          Check your email
+        </Text>
+        <Text className="mt-2 px-4 text-center text-sm leading-5 text-gray-800">
+          We sent a 6-digit OTP to {email}
+        </Text>
+
+        {/* OTP */}
+        <View className="mt-5 h-12 w-full flex-row items-center rounded-xl border border-[#D5DBE8] bg-white px-3">
+          <Ionicons name="key-outline" size={20} color="#6B7280" />
+          <TextInput
+            className="h-full flex-1 px-3 text-sm text-[#0F2A6B]"
+            placeholder="Enter 6-digit OTP"
+            placeholderTextColor="#9AA3B5"
+            keyboardType="number-pad"
+            maxLength={6}
+            style={{ outlineStyle: 'none' }}
+            value={otp}
+            onChangeText={(text) => setOtp(text.replace(/[^0-9]/g, ''))}
+          />
         </View>
 
-        {seconds > 0 ? (
-          <Text className="mt-6 text-[13px] text-[#1B3FB0]">
-            Resend OTP in <Text className="font-bold">{timeText}</Text>
-          </Text>
-        ) : (
-          <Pressable className="mt-6" onPress={handleResend}>
-            <Text className="text-[13px] font-bold text-[#F28C00] underline">Resend OTP</Text>
+        {/* New password */}
+        <View className="mt-3 h-12 w-full flex-row items-center rounded-xl border border-[#D5DBE8] bg-white px-3">
+          <Ionicons name="lock-closed-outline" size={20} color="#6B7280" />
+          <TextInput
+            className="h-full flex-1 px-3 text-sm text-[#0F2A6B]"
+            placeholder="New password"
+            placeholderTextColor="#9AA3B5"
+            secureTextEntry={!showPassword}
+            autoCapitalize="none"
+            style={{ outlineStyle: 'none' }}
+            value={newPassword}
+            onChangeText={setNewPassword}
+          />
+          <Pressable onPress={() => setShowPassword(!showPassword)}>
+            <Ionicons
+              name={showPassword ? 'eye-outline' : 'eye-off-outline'}
+              size={20}
+              color="#6B7280"
+            />
           </Pressable>
-        )}
+        </View>
+        <Text className="mt-1 w-full px-1 text-[11px] text-gray-500">
+          Kam se kam 8 akshar, letter aur number dono
+        </Text>
+
+        {/* Confirm password */}
+        <View className="mt-3 h-12 w-full flex-row items-center rounded-xl border border-[#D5DBE8] bg-white px-3">
+          <Ionicons name="lock-closed-outline" size={20} color="#6B7280" />
+          <TextInput
+            className="h-full flex-1 px-3 text-sm text-[#0F2A6B]"
+            placeholder="Confirm password"
+            placeholderTextColor="#9AA3B5"
+            secureTextEntry={!showPassword}
+            autoCapitalize="none"
+            style={{ outlineStyle: 'none' }}
+            value={confirm}
+            onChangeText={setConfirm}
+          />
+        </View>
 
         <Pressable
-          disabled={!canVerify}
-          className={`mt-[72px] h-12 w-4/5 items-center justify-center rounded-full bg-[#1B4FD8] ${
-            canVerify ? '' : 'opacity-50'
-          }`}
-          onPress={verifyOtp}
+          disabled={!canReset}
+          className={`mt-6 h-12 w-full flex-row items-center justify-center rounded-full bg-[#1B4FD8] ${canReset ? '' : 'opacity-50'
+            }`}
+          onPress={resetPassword}
         >
-          <Text className="text-sm font-bold text-white">VERIFY & LOGIN</Text>
+          <Text className="mr-2 text-base font-bold text-white">Reset Password</Text>
+          <Text className="text-xl font-bold text-white">→</Text>
         </Pressable>
-      </View>
+
+        <View className="mt-5 flex-row">
+          <Text className="text-sm text-gray-800">Didn't get it? </Text>
+          <Pressable onPress={resendOtp}>
+            <Text className="text-sm font-semibold text-[#F28C00] underline">Resend OTP</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
     </View>
   );
 }

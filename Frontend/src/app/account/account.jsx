@@ -45,8 +45,7 @@ export default function Account() {
     loadUser();
   }, []);
 
-  const title = user ? user.name || '+91 ' + user.phone : 'Guest';
-
+   const title = user ? user.name || user.email : 'Guest';
   const openEdit = () => {
     setName(user?.name || '');
     setEmail(user?.email || '');

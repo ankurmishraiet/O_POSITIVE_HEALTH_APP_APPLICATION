@@ -1,35 +1,43 @@
 import { useEffect, useState } from 'react';
 import {
-  Image, Pressable, Text, TextInput, View, useWindowDimensions,
+  Image, Pressable, ScrollView, Text, TextInput, View, useWindowDimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../../../config/api';
 
 export default function Login() {
   const router = useRouter();
   const { width, height } = useWindowDimensions();
   const [s, setS] = useState(1);
-  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [agreed, setAgreed] = useState(true);
 
   useEffect(() => {
     setS(Math.min(width / 393, height / 852));
   }, [width, height]);
 
-  const canContinue = agreed && phone.length === 10;
-  const sendOtp = async () => {
+  // Login tabhi chalega jab email, password aur checkbox teeno ho
+  const canLogin = agreed && email.trim() !== '' && password !== '';
+
+  const login = async () => {
     try {
-      const res = await fetch(BASE_URL + '/auth/send-otp', {
+      const res = await fetch(BASE_URL + '/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone }),
+        body: JSON.stringify({ email: email.trim(), password }),
       });
       const data = await res.json();
       if (!res.ok) {
         alert(data.message);
         return;
       }
-      router.push({ pathname: '/auth/verify-otp/Verifyotp', params: { phone } });
+      await AsyncStorage.setItem('token', data.token);
+      await AsyncStorage.setItem('user', JSON.stringify(data.user));
+      router.replace('/home');
     } catch (err) {
       alert('Server se connect nahi ho paya');
     }
@@ -59,13 +67,14 @@ export default function Login() {
         style={{ position: 'absolute', bottom: 0, right: 0, width: 239 * s, height: 149 * s }}
       />
 
-      <View
-        style={{
-          flex: 1,
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
           alignItems: 'center',
           paddingHorizontal: 24,
-          paddingTop: 68 * s,
-          paddingBottom: 160 * s,
+          paddingTop: 50 * s,
+          paddingBottom: 130 * s,
         }}
       >
         <Image
@@ -75,29 +84,53 @@ export default function Login() {
         />
 
         <Image
-          source={require('../../../../assets/images/doctor-nurse.jpeg')}
-          style={{ width: 310 * s, height: 210 * s, marginTop: 28 * s }}
+          source={require('../../../../assets/images/auth-doctor.png')}
+          style={{ width: 290 * s, height: 210 * s, marginTop: 8 * s }}
           resizeMode="contain"
         />
 
-        <Text className="mt-8 text-center text-[22px] font-bold text-[#0F2A6B]">
+        <Text className="mt-2 text-center text-[28px] font-bold text-[#0F2A6B]">
+          Welcome Back
+        </Text>
+        <Text className="mt-1 text-center text-sm text-gray-700">
           Login to your account
         </Text>
 
-        <View className="mt-6 h-12 w-full flex-row items-center rounded-xl border border-[#D5DBE8] bg-white">
-          <Text className="border-r border-[#D5DBE8] px-4 text-sm font-bold text-[#0F2A6B]">
-            +91
-          </Text>
+        {/* Email */}
+        <View className="mt-5 h-12 w-full flex-row items-center rounded-xl border border-[#D5DBE8] bg-white px-3">
+          <Ionicons name="mail-outline" size={20} color="#6B7280" />
           <TextInput
             className="h-full flex-1 px-3 text-sm text-[#0F2A6B]"
-            placeholder="Enter your mobile number"
+            placeholder="Enter email address"
             placeholderTextColor="#9AA3B5"
-            keyboardType="number-pad"
-            maxLength={10}
+            keyboardType="email-address"
+            autoCapitalize="none"
             style={{ outlineStyle: 'none' }}
-            value={phone}
-            onChangeText={(text) => setPhone(text.replace(/[^0-9]/g, ''))}
+            value={email}
+            onChangeText={setEmail}
           />
+        </View>
+
+        {/* Password */}
+        <View className="mt-3 h-12 w-full flex-row items-center rounded-xl border border-[#D5DBE8] bg-white px-3">
+          <Ionicons name="lock-closed-outline" size={20} color="#6B7280" />
+          <TextInput
+            className="h-full flex-1 px-3 text-sm text-[#0F2A6B]"
+            placeholder="Enter password"
+            placeholderTextColor="#9AA3B5"
+            secureTextEntry={!showPassword}
+            autoCapitalize="none"
+            style={{ outlineStyle: 'none' }}
+            value={password}
+            onChangeText={setPassword}
+          />
+          <Pressable onPress={() => setShowPassword(!showPassword)}>
+            <Ionicons
+              name={showPassword ? 'eye-outline' : 'eye-off-outline'}
+              size={20}
+              color="#6B7280"
+            />
+          </Pressable>
         </View>
 
         <Pressable
@@ -117,17 +150,26 @@ export default function Login() {
         </Pressable>
 
         <Pressable
-          disabled={!canContinue}
-          className={`mt-6 h-12 w-full flex-row items-center justify-center rounded-full bg-[#1B4FD8] ${canContinue ? '' : 'opacity-50'
+          disabled={!canLogin}
+          className={`mt-5 h-12 w-full flex-row items-center justify-center rounded-full bg-[#1B4FD8] ${canLogin ? '' : 'opacity-50'
             }`}
-          onPress={sendOtp}
+          onPress={login}
         >
-          <Text className="mr-2 text-sm font-bold tracking-wide text-white">CONTINUE</Text>
+          <Text className="mr-2 text-base font-bold text-white">Login</Text>
           <Text className="text-xl font-bold text-white">→</Text>
         </Pressable>
 
+        <Pressable className="mt-4" onPress={() => router.push('/auth/forgot/forgot')}>
+          <Text className="text-sm font-semibold text-[#1B4FD8]">Forgot Password?</Text>
+        </Pressable>
 
-      </View>
+        <View className="mt-4 flex-row">
+          <Text className="text-sm text-gray-800">Don't have an account? </Text>
+          <Pressable onPress={() => router.push('/auth/signup/signup')}>
+            <Text className="text-sm font-semibold text-[#F28C00] underline">Sign Up</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
     </View>
   );
 }
