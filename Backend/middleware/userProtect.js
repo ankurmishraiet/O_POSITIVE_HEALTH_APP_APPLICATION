@@ -9,7 +9,7 @@ const userProtect = async (req, res, next) => {
     }
     const token = header.split(' ')[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id).select('-otp -otpExpiry');
+    const user = await User.findById(decoded.id).select('-password -resetCode -resetCodeExpiry -otp -otpExpiry');
     if (!user) {
       return res.status(401).json({ message: 'User nahi mila' });
     }
