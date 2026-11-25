@@ -25,6 +25,11 @@ import {
   toggleHelpful,
   toggleAnswerLike,
 } from "../../service/communityService";
+import { submitFeedback } from "../../service/feedbackService";
+
+// The login screen saves the user as JSON under the "user" key in AsyncStorage,
+// so we read the logged-in user from there (no AuthContext needed).
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const COLORS = {
   navy: "#123D83",
@@ -202,6 +207,62 @@ const InlineError = ({ message }) =>
       <Text className="text-red-600 text-[12px] ml-2 flex-1">{message}</Text>
     </View>
   ) : null;
+
+/**
+ * Name field used in both the Ask and Answer sheets.
+ * - Logged in  -> read-only "Posting as <name>" (cannot be edited)
+ * - Guest      -> the usual optional name input
+ */
+const NameField = ({ lockedName, value, onChangeText }) => {
+  if (lockedName) {
+    return (
+      <>
+        <FieldLabel>Posting as</FieldLabel>
+        <View
+          className="h-[50px] rounded-2xl px-4 flex-row items-center"
+          style={{
+            borderWidth: 1,
+            borderColor: COLORS.border,
+            backgroundColor: "#F1F5F9",
+          }}
+        >
+          <Ionicons
+            name="person-circle-outline"
+            size={22}
+            color={COLORS.muted}
+          />
+          <Text
+            className="ml-2 text-[14px] font-semibold flex-1"
+            style={{ color: COLORS.dark }}
+            numberOfLines={1}
+          >
+            {lockedName}
+          </Text>
+          <Ionicons name="lock-closed" size={15} color={COLORS.placeholder} />
+        </View>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <FieldLabel>Your name (optional)</FieldLabel>
+      <TextInput
+        value={value}
+        onChangeText={onChangeText}
+        placeholder="Guest"
+        placeholderTextColor={COLORS.placeholder}
+        maxLength={60}
+        className="h-[50px] rounded-2xl px-4 text-[14px] font-medium bg-white"
+        style={{
+          borderWidth: 1,
+          borderColor: value ? COLORS.blue : COLORS.border,
+          color: COLORS.dark,
+        }}
+      />
+    </>
+  );
+};
 
 /* ------------------------------- answers ------------------------------- */
 
@@ -463,6 +524,25 @@ const QuestionCard = ({
 /* -------------------------------- screen -------------------------------- */
 
 const CommunityScreen = () => {
+  // Logged-in user. When present, their name is used for every question and
+  // answer and cannot be changed in the form.
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const stored = await AsyncStorage.getItem("user");
+        if (stored) setUser(JSON.parse(stored));
+      } catch (e) {
+        // ignore - treated as a guest
+      }
+    };
+    loadUser();
+  }, []);
+
+  // If your backend returns the name under a different key, add it here.
+  const loggedInName = (user?.name || user?.fullName || "").trim();
+
   const [tab, setTab] = useState("feed"); // "feed" | "mine"
   const [category, setCategory] = useState("All");
 
@@ -492,6 +572,13 @@ const CommunityScreen = () => {
   const [answerName, setAnswerName] = useState("");
   const [answerError, setAnswerError] = useState("");
   const [answerBusy, setAnswerBusy] = useState(false);
+
+  // Feedback
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [feedbackText, setFeedbackText] = useState("");
+  const [feedbackError, setFeedbackError] = useState("");
+  const [feedbackBusy, setFeedbackBusy] = useState(false);
 
   /* ----------------------------- data loading ----------------------------- */
 
@@ -610,10 +697,12 @@ const CommunityScreen = () => {
     setAskBusy(true);
 
     try {
+      // Logged in: do NOT send a name. The backend sets it from the login token.
+      // Guest: send the typed name (or empty -> "Guest").
       const res = await askQuestion({
         category: askCategory,
         question: askText.trim(),
-        authorName: askName.trim(),
+        ...(loggedInName ? {} : { authorName: askName.trim() }),
       });
 
       const created = res.data;
@@ -651,7 +740,7 @@ const CommunityScreen = () => {
     try {
       const res = await answerQuestion(answerTarget.id, {
         text: answerText.trim(),
-        authorName: answerName.trim(),
+        ...(loggedInName ? {} : { authorName: answerName.trim() }),
       });
 
       replaceItem(res.data);
@@ -662,6 +751,33 @@ const CommunityScreen = () => {
       setAnswerError(errorMessage(err, "Unable to post. Please try again."));
     } finally {
       setAnswerBusy(false);
+    }
+  };
+
+  const sendFeedback = async () => {
+    if (feedbackBusy) return;
+
+    if (!rating) return setFeedbackError("Please select a rating.");
+    if (feedbackText.trim().length < 5)
+      return setFeedbackError("Please write at least 5 characters.");
+
+    setFeedbackError("");
+    setFeedbackBusy(true);
+
+    try {
+      const res = await submitFeedback({
+        rating,
+        message: feedbackText.trim(),
+      });
+
+      setFeedbackOpen(false);
+      setRating(0);
+      setFeedbackText("");
+      showBanner(res.message || "Thank you for your feedback!");
+    } catch (err) {
+      setFeedbackError(errorMessage(err, "Unable to send. Please try again."));
+    } finally {
+      setFeedbackBusy(false);
     }
   };
 
@@ -720,12 +836,36 @@ const CommunityScreen = () => {
     <View className="flex-1" style={{ backgroundColor: COLORS.background }}>
       {/* Header */}
       <View className="px-5 pt-3 pb-2 bg-white">
-        <Text
-          className="text-[25px] font-extrabold"
-          style={{ color: COLORS.dark }}
-        >
-          Community
-        </Text>
+        <View className="flex-row items-center justify-between">
+          <Text
+            className="text-[25px] font-extrabold"
+            style={{ color: COLORS.dark }}
+          >
+            Community
+          </Text>
+
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => {
+              setFeedbackError("");
+              setFeedbackOpen(true);
+            }}
+            className="flex-row items-center px-3 py-2 rounded-full"
+            style={{ backgroundColor: "#EAF4FF" }}
+          >
+            <Ionicons
+              name="chatbox-ellipses-outline"
+              size={18}
+              color={COLORS.blue}
+            />
+            <Text
+              className="ml-1 text-[13px] font-bold"
+              style={{ color: COLORS.blue }}
+            >
+              Feedback
+            </Text>
+          </TouchableOpacity>
+        </View>
         <View
           className="w-14 h-1 rounded-full mt-2"
           style={{ backgroundColor: COLORS.orange }}
@@ -932,19 +1072,10 @@ const CommunityScreen = () => {
             ))}
           </View>
 
-          <FieldLabel>Your name (optional)</FieldLabel>
-          <TextInput
+          <NameField
+            lockedName={loggedInName}
             value={askName}
             onChangeText={setAskName}
-            placeholder="Guest"
-            placeholderTextColor={COLORS.placeholder}
-            maxLength={60}
-            className="h-[50px] rounded-2xl px-4 text-[14px] font-medium bg-white"
-            style={{
-              borderWidth: 1,
-              borderColor: askName ? COLORS.blue : COLORS.border,
-              color: COLORS.dark,
-            }}
           />
 
           <FieldLabel>
@@ -1013,19 +1144,10 @@ const CommunityScreen = () => {
             </View>
           )}
 
-          <FieldLabel>Your name (optional)</FieldLabel>
-          <TextInput
+          <NameField
+            lockedName={loggedInName}
             value={answerName}
             onChangeText={setAnswerName}
-            placeholder="Guest"
-            placeholderTextColor={COLORS.placeholder}
-            maxLength={60}
-            className="h-[50px] rounded-2xl px-4 text-[14px] font-medium bg-white"
-            style={{
-              borderWidth: 1,
-              borderColor: answerName ? COLORS.blue : COLORS.border,
-              color: COLORS.dark,
-            }}
           />
 
           <FieldLabel>
@@ -1054,6 +1176,72 @@ const CommunityScreen = () => {
             label="Post answer"
             onPress={submitAnswer}
             busy={answerBusy}
+          />
+        </ScrollView>
+      </Sheet>
+
+      {/* Feedback sheet */}
+      <Sheet
+        visible={feedbackOpen}
+        title="Share your feedback"
+        onClose={() => setFeedbackOpen(false)}
+      >
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <FieldLabel>
+            How was your experience?{" "}
+            <Text style={{ color: COLORS.orange }}>*</Text>
+          </FieldLabel>
+          <View className="flex-row mb-1">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <TouchableOpacity
+                key={n}
+                onPress={() => setRating(n)}
+                className="mr-2"
+              >
+                <Ionicons
+                  name={n <= rating ? "star" : "star-outline"}
+                  size={34}
+                  color={n <= rating ? COLORS.orange : "#B5C0CC"}
+                />
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <FieldLabel>
+            Your feedback <Text style={{ color: COLORS.orange }}>*</Text>
+          </FieldLabel>
+          <TextInput
+            value={feedbackText}
+            onChangeText={setFeedbackText}
+            placeholder="Tell us what we can improve..."
+            placeholderTextColor={COLORS.placeholder}
+            multiline
+            maxLength={500}
+            textAlignVertical="top"
+            className="rounded-2xl px-4 py-3 text-[14px] font-medium bg-white"
+            style={{
+              minHeight: 110,
+              borderWidth: 1,
+              borderColor: feedbackText ? COLORS.blue : COLORS.border,
+              color: COLORS.dark,
+            }}
+          />
+          <Text
+            className="text-[11px] text-right mt-1"
+            style={{ color: COLORS.muted }}
+          >
+            {feedbackText.length}/500
+          </Text>
+
+          <InlineError message={feedbackError} />
+
+          <PrimaryButton
+            label="Send feedback"
+            onPress={sendFeedback}
+            busy={feedbackBusy}
           />
         </ScrollView>
       </Sheet>

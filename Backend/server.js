@@ -4,15 +4,20 @@ const path = require("path");
 const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
-
 const connectDB = require("./config/db");
 
 // Import routes
+const {
+  publicRouter,
+  adminRouter
+} = require('./routes/service/serviceRoutes');
+const { patientRouter, adminConsultRouter } = require('./routes/service/consultationroutes');
 const adminRoutes = require("./routes/adminRoutes");
 const userRoutes = require("./routes/userRoutes");
 const insuranceRoutes = require("./routes/insurance/insuranceRoutes");
 const medicalLoanRoutes = require("./routes/medical/medicalRoutes");
 const communityRoutes = require("./routes/community/communityRoutes");
+const feedbackRoutes = require("./routes/community/feedbackRoutes");
 const conditionRoutes = require("./routes/conditions/conditionRoutes");
 const appointmentRoutes = require("./routes/appointments/appointmentRoutes");
 
@@ -35,10 +40,14 @@ app.get("/", (req, res) => {
 });
 
 // Register routes
-// Specific /api/... routes pehle, taaki generic '/api' (userRoutes) unhe na roke
+// Specific /api/... routes first, so the generic '/api' (userRoutes) doesn't block them
 app.use("/api/admin", adminRoutes);
+app.use('/api/services', publicRouter);
+app.use('/api/admin/services', adminRouter);
+
 app.use("/api/insurance", insuranceRoutes);
 app.use("/api/medical-loan", medicalLoanRoutes);
+app.use("/api/community", feedbackRoutes); // feedback first: POST /api/community/feedback
 app.use("/api/community", communityRoutes);
 app.use("/api/conditions", conditionRoutes);
 app.use("/api/appointments", appointmentRoutes);

@@ -50,13 +50,17 @@ export default function OnboardingIndex() {
           </View>
 
           {/* Hero image */}
-          <View className="mx-6 mt-6 h-[220px] overflow-hidden rounded-[28px]">
-            <Image
-              source={require("../../../assets/images/o_positive_health.png")}
-              resizeMode="cover"
-              className="h-full w-full"
-            />
-          </View>
+          {/* Hero image */}
+<View className="mx-6 mt-6 h-[190px] items-center justify-center">
+  <Image
+    source={require("../../../assets/images/Heart.jpeg")}
+    resizeMode="contain"
+    style={{
+      width: "100%",
+      height: "100%",
+    }}
+  />
+</View>
 
           {/* Intro text */}
           <View className="mt-6 items-center px-5">
